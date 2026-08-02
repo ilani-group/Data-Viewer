@@ -157,6 +157,7 @@
       <h2>Account</h2>
       <div class="btns"><button class="ghost" id="bConnect">Connect Drive</button></div>
       <div class="btns"><button class="ghost hidden" id="bShare">Copy folder link</button></div>
+      <p class="hint" style="margin-top:11px" id="buildTag"></p>
       <p class="hint" style="margin-top:11px">
         drag dashed lines to move slices<br>
         wheel over a panel steps its slice<br>
@@ -183,6 +184,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
+const BUILD = "build 4 — 2 Aug 2026";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -287,6 +289,7 @@ const S = {
   token:null, pickerReady:false, folderId:null, fileId:null
 };
 $("selCmap").value = S.cmap;
+$("buildTag").textContent = BUILD;
 
 /* ---------------- HDF5 ---------------- */
 async function loadH5(){
