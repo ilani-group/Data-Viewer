@@ -849,9 +849,16 @@ function tokenFailed(why){
 function connectSilent(){ if (initTokenClient()){ silent=true; tokenClient.requestAccessToken({prompt:""}); } }
 function connect(then){
   if (S.token){ then&&then(); return; }
-  if (!initTokenClient()){ status("Google sign-in library did not load","err"); return; }
-  silent=false; S._after=then;
-  tokenClient.requestAccessToken();
+  if (initTokenClient()){ silent=false; S._after=then; tokenClient.requestAccessToken(); return; }
+  /* the identity script may still be in flight — wait for it rather than
+     giving up, and only report a failure once it really has not arrived  */
+  status("Waiting for Google sign-in…");
+  let n=0;
+  (function poll(){
+    if (initTokenClient()){ silent=false; S._after=then; tokenClient.requestAccessToken(); return; }
+    if (++n>50){ status("Google sign-in did not load — an ad blocker or tracking protection may be blocking accounts.google.com","err"); return; }
+    setTimeout(poll,200);
+  })();
 }
 $("bConnect").addEventListener("click",()=>connect());
 
