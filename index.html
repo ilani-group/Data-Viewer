@@ -11,130 +11,170 @@
     --pass:#146b52; --fail:#a82d27;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --leftW: 208px; --rightW: 296px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    font-family:var(--sans); color:var(--ink); line-height:1.45;
-    background-color:var(--paper);
+  html,body{margin:0;padding:0;height:100%;overflow:hidden}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.45}
+
+  #app{display:flex;height:100vh;width:100vw}
+  aside{background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
+  #left{width:var(--leftW);border-right:1px solid var(--rule);flex:0 0 var(--leftW)}
+  #right{width:var(--rightW);border-left:1px solid var(--rule);flex:0 0 var(--rightW)}
+  #stage{flex:1 1 auto;min-width:320px;position:relative;
     background-image:linear-gradient(var(--rule-faint) 1px,transparent 1px),
                      linear-gradient(90deg,var(--rule-faint) 1px,transparent 1px);
-    background-size:22px 22px; padding:12px 12px 28px;
-  }
-  .wrap{max-width:1800px;margin:0 auto}
-  .bar{background:var(--surface);border:1px solid var(--rule);padding:8px 12px;
-       margin-bottom:8px;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
-  .bar.title{border-color:var(--ink)}
-  h1{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.16em;
+    background-size:22px 22px}
+  #cv{display:block;position:absolute;inset:0}
+
+  .sec{border-bottom:1px solid var(--rule-faint);padding:11px 13px}
+  .sec:last-child{border-bottom:0}
+  .sec h2{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+          color:var(--muted);margin:0 0 8px;font-weight:600}
+  .grow{flex:1 1 auto;overflow-y:auto;min-height:0}
+
+  h1{font-family:var(--mono);font-size:13.5px;font-weight:600;letter-spacing:.17em;
      text-transform:uppercase;margin:0}
-  .sub{font-size:12px;color:var(--muted)}
-  .spacer{margin-left:auto}
-  .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-  button{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-         padding:6px 12px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+  .brand{padding:14px 13px 12px;border-bottom:1px solid var(--ink);background:var(--ink);color:#fff}
+  .brand h1{color:#fff}
+  .brand p{margin:5px 0 0;font-size:11px;color:#8ea3ba}
+
+  button{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+         padding:7px 10px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;width:100%}
   button.ghost{background:transparent;color:var(--ink)}
-  button.mini{padding:4px 8px;font-size:10px}
-  button:disabled{opacity:.32;cursor:not-allowed}
+  button.row{width:auto;flex:1}
+  button:disabled{opacity:.3;cursor:not-allowed}
   button:hover:not(:disabled){background:var(--blueprint);border-color:var(--blueprint);color:#fff}
   button:focus-visible{outline:2px solid var(--blueprint);outline-offset:2px}
-  select,input[type=number]{font-family:var(--mono);font-size:11.5px;padding:4px 6px;
-         border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+  .btns{display:flex;gap:6px;margin-top:6px}
+  .btns:first-child{margin-top:0}
+
+  select,input[type=number]{font-family:var(--mono);font-size:11.5px;padding:5px 6px;width:100%;
+    border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
   select:focus,input:focus{outline:2px solid var(--blueprint);outline-offset:-1px;background:#fff}
-  input[type=number]{width:98px}
-  label.f{display:flex;align-items:center;gap:5px}
-  #status{font-size:12px;color:var(--muted)}
+  .fld{margin-bottom:7px}
+  .fld label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.13em;
+             text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+  .pair{display:flex;gap:6px}
+  .pair .fld{flex:1;margin-bottom:0}
+  .chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin:7px 0 0}
+
+  #status{font-size:11.5px;color:var(--muted);word-break:break-word}
   #status.err{color:var(--fail)} #status.ok{color:var(--pass)}
-  #files{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border:1px solid var(--rule);
-        background:var(--paper);cursor:pointer;color:var(--ink)}
-  .chip:hover{border-color:var(--blueprint);color:var(--blueprint)}
-  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .chip .sz{color:var(--muted);margin-left:6px;font-size:10px}
-  .chip.on .sz{color:#9fb0c4}
-  #stage{background:var(--surface);border:1px solid var(--rule);padding:0;position:relative}
-  #cv{display:block;width:100%;touch-action:none}
+
+  .file{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:11.5px;
+    padding:7px 13px;border:0;border-bottom:1px solid var(--rule-faint);background:transparent;
+    color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0}
+  .file:hover{background:#eef2f7;color:var(--blueprint)}
+  .file.on{background:var(--ink);color:#fff}
+  .file .sz{display:block;font-size:9.5px;color:var(--muted);margin-top:1px}
+  .file.on .sz{color:#93a7bd}
+  .folder{font-family:var(--mono);font-size:10.5px;color:var(--blueprint);
+    padding:9px 13px;border-bottom:1px solid var(--rule-faint);word-break:break-all}
+  .none{padding:16px 13px;font-size:12px;color:var(--muted)}
+
+  .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin:0}
   .hidden{display:none!important}
-  .empty{background:var(--surface);border:1px dashed var(--rule);padding:48px 24px;
-         text-align:center;color:var(--muted);font-size:14px}
-  .empty b{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.1em;
-           text-transform:uppercase;color:var(--ink);margin-bottom:8px}
-  body.drag::after{content:"Drop a .mat file";position:fixed;inset:0;background:rgba(43,74,125,.9);
+  body.drag::after{content:"Drop a .mat file";position:fixed;inset:0;background:rgba(43,74,125,.92);
     color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);
     font-size:20px;letter-spacing:.14em;text-transform:uppercase;z-index:99}
+  #splash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:30px;color:var(--muted);font-size:13px}
+  #splash b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink);margin-bottom:9px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="app">
 
-  <div class="bar title">
-    <h1>Explore 3D</h1>
-    <span class="sub">drag the dashed lines to move the slices</span>
-    <span class="spacer"></span>
-    <span id="status">Loading HDF5 engine…</span>
-  </div>
+  <aside id="left">
+    <div class="sec" style="border-bottom:1px solid var(--rule)">
+      <h2>Files</h2>
+      <div class="btns">
+        <button class="ghost row" id="bFolder">Folder…</button>
+        <button class="ghost row" id="bLocal">Local…</button>
+      </div>
+    </div>
+    <div id="folderName" class="folder hidden"></div>
+    <div id="fileList" class="grow"><div class="none">No folder open.</div></div>
+  </aside>
 
-  <div class="bar">
-    <span class="tag">Source</span>
-    <button id="bConnect">Connect Drive</button>
-    <button id="bFolder" disabled>Open folder…</button>
-    <button id="bFiles" disabled>Open files…</button>
-    <button class="ghost" id="bLocal">Local file…</button>
-    <input type="file" id="fileInput" accept=".mat,.h5,.hdf5" class="hidden">
-    <span class="spacer"></span>
-    <button class="ghost mini hidden" id="bShare">Copy folder link</button>
-  </div>
+  <main id="stage">
+    <canvas id="cv"></canvas>
+    <div id="splash">
+      <div>
+        <b>Explore 3D</b>
+        Pick a folder shared with you, or drop a <code>.mat</code> file here.<br>
+        MATLAB files must be saved with <code>-v7.3</code>.
+      </div>
+    </div>
+  </main>
 
-  <div class="bar hidden" id="filesBar"><span class="tag">Files</span><div id="files"></div></div>
+  <aside id="right">
+    <div class="brand">
+      <h1>Explore 3D</h1>
+      <p>drag the dashed lines to move slices</p>
+    </div>
 
-  <div class="bar hidden" id="varBar">
-    <label class="f"><span class="tag">Data</span><select id="selData"></select></label>
-    <label class="f"><span class="tag">Dim 1</span><select id="selX"></select></label>
-    <label class="f"><span class="tag">Dim 2</span><select id="selY"></select></label>
-    <label class="f"><span class="tag">Dim 3</span><select id="selZ"></select></label>
-    <span class="spacer"></span>
-    <span class="tag" id="dimsTag"></span>
-  </div>
+    <div class="sec"><div id="status">Loading HDF5 engine…</div></div>
 
-  <div class="bar hidden" id="dispBar">
-    <label class="f"><span class="tag">Colormap</span>
-      <select id="selCmap">
-        <option value="whitejet7">whitejet7</option>
-        <option value="parula">parula</option>
-        <option value="viridis">viridis</option>
-        <option value="inferno">inferno</option>
-        <option value="turbo">turbo</option>
-        <option value="jet">jet</option>
-        <option value="rdbu">red–white–blue</option>
-        <option value="purple">white–purple–black</option>
-        <option value="gray">gray</option>
-      </select>
-    </label>
-    <label class="f"><span class="tag">Invert</span><input type="checkbox" id="cbInv"></label>
-    <label class="f"><span class="tag">Min</span><input type="number" id="inVmin" step="any"></label>
-    <label class="f"><span class="tag">Max</span><input type="number" id="inVmax" step="any"></label>
-    <button class="ghost mini" id="bAutoAll">Auto · volume</button>
-    <button class="ghost mini" id="bAutoSlice">Auto · slice</button>
-    <button class="ghost mini" id="bAutoPct">Auto · 1–99%</button>
-    <span class="spacer"></span>
-    <span class="tag">drag colorbar to shift · wheel to scale</span>
-  </div>
+    <div class="sec hidden" id="secVar">
+      <h2>Dataset</h2>
+      <div class="fld"><label>Data</label><select id="selData"></select></div>
+      <div class="fld"><label>Dim 1 — vertical, top panels</label><select id="selX"></select></div>
+      <div class="fld"><label>Dim 2 — horizontal, top right</label><select id="selY"></select></div>
+      <div class="fld"><label>Dim 3 — horizontal, left column</label><select id="selZ"></select></div>
+      <p class="hint" id="dimsTag"></p>
+    </div>
 
-  <div id="stage" class="hidden"><canvas id="cv"></canvas></div>
+    <div class="sec hidden" id="secDisp">
+      <h2>Colour</h2>
+      <div class="fld"><label>Colormap</label>
+        <select id="selCmap">
+          <option value="whitejet7">whitejet7</option>
+          <option value="parula">parula</option>
+          <option value="viridis">viridis</option>
+          <option value="inferno">inferno</option>
+          <option value="turbo">turbo</option>
+          <option value="jet">jet</option>
+          <option value="rdbu">red–white–blue</option>
+          <option value="purple">white–purple–black</option>
+          <option value="gray">gray</option>
+        </select>
+      </div>
+      <div class="pair">
+        <div class="fld"><label>Min</label><input type="number" id="inVmin" step="any"></div>
+        <div class="fld"><label>Max</label><input type="number" id="inVmax" step="any"></div>
+      </div>
+      <div class="btns"><button class="ghost row" id="bAutoAll">Volume</button>
+        <button class="ghost row" id="bAutoSlice">Slice</button>
+        <button class="ghost row" id="bAutoPct">1–99%</button></div>
+      <label class="chk"><input type="checkbox" id="cbInv"> invert colormap</label>
+    </div>
 
-  <div class="empty" id="empty">
-    <b>No data loaded</b>
-    Connect Drive and open a shared folder, or drop a <code>.mat</code> file anywhere on this page.<br>
-    MATLAB files must be saved with <code>-v7.3</code> so they are HDF5.
-  </div>
+    <div class="sec grow">
+      <h2>Account</h2>
+      <div class="btns"><button class="ghost" id="bConnect">Connect Drive</button></div>
+      <div class="btns"><button class="ghost hidden" id="bShare">Copy folder link</button></div>
+      <p class="hint" style="margin-top:11px">
+        drag dashed lines to move slices<br>
+        wheel over a panel steps its slice<br>
+        drag the colorbar to shift, wheel to scale<br>
+        arrows / PgUp / PgDn step the cursor
+      </p>
+    </div>
+  </aside>
+
 </div>
+<input type="file" id="fileInput" accept=".mat,.h5,.hdf5" class="hidden">
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
 <script type="module">
 /* ===========================================================
-   Google Cloud project "Lab Data".  These values are public by
-   design and constrained by origin / referrer restrictions.
+   Google Cloud project "Lab Data" — public by design, fenced by
+   the authorised-origin and HTTP-referrer restrictions.
    =========================================================== */
 const CLIENT_ID = "498900799605-2uhlfk14fjr7dkfppv8qlhsuh1p9g80g.apps.googleusercontent.com";
 const API_KEY   = "AIzaSyDNh7rxTC3pNKR9Ye3xOsBJYwyBH7pKDh8";
@@ -145,6 +185,13 @@ const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
+
+/* remembered across sessions — degrades silently if storage is blocked */
+const store = {
+  get(k){ try{ return localStorage.getItem("e3d_"+k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem("e3d_"+k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem("e3d_"+k); }catch(e){} }
+};
 
 function fmt(v){
   if (v===null||v===undefined||!isFinite(v)) return "—";
@@ -183,8 +230,7 @@ const ANCHORS = {
        m = round(cmap * 255);
        s = lower(reshape(dec2hex(m', 2).', 1, []));
        clipboard('copy', s)
-   Paste the result below under a new name and add an <option> to the
-   colormap selector with the same name.  No other change is needed.     */
+   Paste it below under a new name and add an <option> with that name. */
 const HEXMAPS = {
   whitejet7:
     "fffffffefdfffefcfffdfafffdf8fffcf6fffcf4fffbf2fffaf0fff9eefff9ebfff8e9fff7e6fff6e4fff5e1fff5deff"+
@@ -237,9 +283,10 @@ const S = {
   dims:[1,1,1], strides:[1,1,1], values:null,
   names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null], flip:[false,false,false],
   idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
-  cmap:"whitejet7", invert:false, epoch:0,
-  token:null, pickerReady:false, folderId:null
+  cmap:store.get("cmap")||"whitejet7", invert:false, epoch:0,
+  token:null, pickerReady:false, folderId:null, fileId:null
 };
+$("selCmap").value = S.cmap;
 
 /* ---------------- HDF5 ---------------- */
 async function loadH5(){
@@ -260,7 +307,6 @@ async function loadH5(){
 }
 const isDataset=o=>o&&typeof o==="object"&&"shape" in o&&"dtype" in o;
 const isGroup=o=>o&&typeof o==="object"&&typeof o.keys==="function"&&!isDataset(o);
-
 function scan(node,path,out){
   let keys; try{ keys=node.keys(); }catch(e){ return; }
   for (const k of keys){
@@ -269,7 +315,7 @@ function scan(node,path,out){
     let o; try{ o=node.get(k); }catch(e){ continue; }
     if (isGroup(o)) scan(o,p,out);
     else if (isDataset(o)){
-      const dims=Array.from(o.shape||[]).slice().reverse();   // MATLAB writes dims reversed
+      const dims=Array.from(o.shape||[]).slice().reverse();  // MATLAB writes dims reversed
       const n=dims.reduce((a,b)=>a*b,1);
       if (!n) continue;
       out.push({path:p,node:o,dims,eff:dims.filter(d=>d>1),count:n,dtype:String(o.dtype)});
@@ -304,9 +350,9 @@ async function openBuffer(buf,name){
     S.vectors=all.filter(e=>e.eff.length===1&&e.count>1).sort((a,b)=>a.path.localeCompare(b.path));
     if (!S.candidates.length) throw new Error("no 2-D or 3-D arrays in this file");
     fillSelect($("selData"),S.candidates.map(e=>({v:e.path,t:e.path+"  ["+e.eff.join(" × ")+"]"})));
-    $("varBar").classList.remove("hidden"); $("dispBar").classList.remove("hidden");
+    $("secVar").classList.remove("hidden"); $("secDisp").classList.remove("hidden");
     selectData(S.candidates[0].path);
-    status("Loaded "+name,"ok");
+    status(name,"ok");
   }catch(e){ console.error(e); status(e.message,"err"); }
 }
 function fillSelect(sel,items,extra){
@@ -329,8 +375,8 @@ function selectData(path){
   S.fullMin=lo; S.fullMax=hi; S.vmin=lo; S.vmax=hi;
   $("inVmin").value=+lo.toPrecision(6); $("inVmax").value=+hi.toPrecision(6);
   guessAxes();
-  $("dimsTag").textContent=dims.join(" × ")+"   ·   "+fmt(lo)+" … "+fmt(hi);
-  $("stage").classList.remove("hidden"); $("empty").classList.add("hidden");
+  $("dimsTag").textContent=dims.join(" × ")+"  ·  "+fmt(lo)+" … "+fmt(hi);
+  $("splash").classList.add("hidden");
   S.epoch++; resize(); draw();
 }
 function guessAxes(){
@@ -376,53 +422,14 @@ function niceTicks(lo,hi,target){
 }
 
 /* ===========================================================
-   Layout — the architectural arrangement.
-     row 1 : cut along X   |   cut along Z
-     row 2 : cut along Y | PANEL XY | PANEL ZY | colorbar
-     row 3 : cut along Z | PANEL XZ | readout
-   Panels XY and ZY share the vertical mapping exactly.
-   Panels XY and XZ share the horizontal mapping exactly.
-   Each 1-D strip inherits its panel's mapping, so the dashed
-   lines line up across every plot.
+   Panels, in the MATLAB arrangement.  For explore3D(Vb,Vg,theta,G)
+   dim 1 = bias, dim 2 = gate, dim 3 = theta.
    =========================================================== */
-const GEO = { pad:12, cutW:92, cutH:80, gap:9, labL:52, labB:30, gapX:34, gapY:34, cbW:26, cbLab:60 };
-let L = null;
-
-function layout(W,H){
-  const g=GEO;
-  const leftBlock = g.pad + g.cutW + g.gap + g.labL;
-  const rightBlock = g.gap + g.cbW + g.cbLab + g.pad;
-  const avail = W - leftBlock - g.gapX - g.labL - rightBlock;
-  const aw = Math.max(140, Math.floor(avail*0.5));
-  const bw = Math.max(120, avail-aw);
-  const ax = leftBlock, bx = ax+aw+g.gapX+g.labL;
-  const ay = g.pad + g.cutH + g.gap;
-  const availH = H - ay - g.labB - g.gapY - g.labB - g.pad;
-  const ah = Math.max(140, Math.floor(availH*0.56));
-  const ch = Math.max(110, availH-ah);
-  const cy = ay + ah + g.labB + g.gapY;
-  return {
-    tl:{x:ax,y:ay,w:aw,h:ah}, tr:{x:bx,y:ay,w:bw,h:ah}, bl:{x:ax,y:cy,w:aw,h:ch},
-    cutTopL:{x:ax,y:g.pad,w:aw,h:g.cutH},
-    cutTopR:{x:bx,y:g.pad,w:bw,h:g.cutH},
-    cutLeftT:{x:g.pad,y:ay,w:g.cutW,h:ah},
-    cutLeftB:{x:g.pad,y:cy,w:g.cutW,h:ch},
-    cbar:{x:bx+bw+g.gap,y:ay,w:g.cbW,h:ah},
-    info:{x:bx,y:cy,w:bw,h:ch}
-  };
-}
-
-/* Panels, in the MATLAB arrangement.  For explore3D(Vb, Vg, theta, G)
-   the dimensions are 1 = bias, 2 = gate, 3 = theta, and the figure puts
-   dim 1 on the vertical of both top panels, dim 3 on the horizontal of
-   the left column, dim 2 horizontal top-right and vertical bottom-left. */
 const PAN = [
-  {key:"tl", h:2, v:0, fix:1},   // top-left    dim3 – dim1   (theta – bias)
-  {key:"tr", h:1, v:0, fix:2},   // top-right   dim2 – dim1   (gate  – bias)
-  {key:"bl", h:2, v:1, fix:0}    // bottom-left dim3 – dim2   (theta – gate)
+  {key:"tl", h:2, v:0, fix:1},   // top-left    dim3 – dim1
+  {key:"tr", h:1, v:0, fix:2},   // top-right   dim2 – dim1
+  {key:"bl", h:2, v:1, fix:0}    // bottom-left dim3 – dim2
 ];
-/* 1-D strips: ax = axis plotted; dir "h" = value upward, "v" = value sideways;
-   ref = the panel whose pixel mapping it must inherit exactly.               */
 const STRIP = [
   {key:"cutTopL",  ax:2, dir:"h", ref:"tl"},
   {key:"cutTopR",  ax:1, dir:"h", ref:"tr"},
@@ -430,37 +437,57 @@ const STRIP = [
   {key:"cutLeftB", ax:1, dir:"v", ref:"bl"}
 ];
 
-const cv = $("cv");
-const ctx = cv.getContext("2d");
-let DPR = 1;
-
-function resize(){
-  const stage=$("stage");
-  if (stage.classList.contains("hidden")) return;
-  DPR = window.devicePixelRatio||1;
-  const W = stage.clientWidth;
-  const top = stage.getBoundingClientRect().top + window.scrollY;
-  const H = Math.max(660, Math.min(1250, window.innerHeight - 24 - (top - window.scrollY)));
-  cv.style.height = H+"px";
-  cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  L = layout(W,H);
-  for (const p of PAN) p._built = -1;
+let L=null;
+function layout(W,H){
+  const pad=12, gap=8, labL=48, labB=28, gapX=30, gapY=30, cbW=22, cbLab=54;
+  const cutW=Math.max(64,Math.min(104,Math.round(W*0.085)));
+  const cutH=Math.max(56,Math.min(96,Math.round(H*0.10)));
+  const leftBlock=pad+cutW+gap+labL;
+  const rightBlock=gap+cbW+cbLab+pad;
+  const avail=W-leftBlock-gapX-labL-rightBlock;
+  const aw=Math.max(120,Math.floor(avail*0.5));
+  const bw=Math.max(110,avail-aw);
+  const ax=leftBlock, bx=ax+aw+gapX+labL;
+  const ay=pad+cutH+gap;
+  const availH=H-ay-labB-gapY-labB-pad;
+  const ah=Math.max(120,Math.floor(availH*0.56));
+  const ch=Math.max(96,availH-ah);
+  const cy=ay+ah+labB+gapY;
+  return {
+    tl:{x:ax,y:ay,w:aw,h:ah}, tr:{x:bx,y:ay,w:bw,h:ah}, bl:{x:ax,y:cy,w:aw,h:ch},
+    cutTopL:{x:ax,y:pad,w:aw,h:cutH},
+    cutTopR:{x:bx,y:pad,w:bw,h:cutH},
+    cutLeftT:{x:pad,y:ay,w:cutW,h:ah},
+    cutLeftB:{x:pad,y:cy,w:cutW,h:ch},
+    cbar:{x:bx+bw+gap,y:ay,w:cbW,h:ah},
+    info:{x:bx,y:cy,w:bw,h:ch}, labL
+  };
 }
 
-/* ---- pixel mappings, shared by panels and their strips ---- */
-/* index -> fraction along the axis measured from its low-value end, so a
-   descending axis vector is drawn flipped and values always increase
-   upward and to the right, exactly as MATLAB's imagesc does.            */
-const frac   = (d,i) => { const t=(i+0.5)/S.dims[d]; return S.flip[d]?1-t:t; };
-const unfrac = (d,t) => { const u=S.flip[d]?1-t:t;
-                          return Math.max(0,Math.min(S.dims[d]-1,Math.floor(u*S.dims[d]))); };
-const pxOf = (r,d,i) => r.x + frac(d,i)*r.w;
-const pyOf = (r,d,i) => r.y + r.h - frac(d,i)*r.h;
-const ixOf = (r,d,x) => unfrac(d,(x-r.x)/r.w);
-const iyOf = (r,d,y) => unfrac(d,(r.y+r.h-y)/r.h);
+const cv=$("cv"), ctx=cv.getContext("2d");
+const MONO='ui-monospace, Menlo, Consolas, monospace';
+function resize(){
+  const st=$("stage");
+  const W=st.clientWidth, H=st.clientHeight;
+  if (!W||!H) return;
+  const dpr=window.devicePixelRatio||1;
+  cv.style.width=W+"px"; cv.style.height=H+"px";
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  L=layout(W,H);
+  for (const p of PAN) p._built=-1;
+}
 
-/* ---- slice rendering into offscreen canvases ---- */
+/* index -> fraction from the axis's low-value end; a descending vector is
+   drawn flipped so values always increase upward and to the right.        */
+const frac   = (d,i)=>{ const t=(i+0.5)/S.dims[d]; return S.flip[d]?1-t:t; };
+const unfrac = (d,t)=>{ const u=S.flip[d]?1-t:t;
+                        return Math.max(0,Math.min(S.dims[d]-1,Math.floor(u*S.dims[d]))); };
+const pxOf=(r,d,i)=>r.x+frac(d,i)*r.w;
+const pyOf=(r,d,i)=>r.y+r.h-frac(d,i)*r.h;
+const ixOf=(r,d,x)=>unfrac(d,(x-r.x)/r.w);
+const iyOf=(r,d,y)=>unfrac(d,(r.y+r.h-y)/r.h);
+
 const off={};
 function buildSlice(p){
   const nH=S.dims[p.h], nV=S.dims[p.v];
@@ -489,7 +516,6 @@ function buildSlice(p){
   return o;
 }
 
-/* ---- drawing helpers ---- */
 function box(r){ ctx.strokeStyle="#16202e"; ctx.lineWidth=1; ctx.strokeRect(r.x+.5,r.y+.5,r.w-1,r.h-1); }
 function ticksX(r,lo,hi,below,n){
   ctx.fillStyle="#5d6b7d"; ctx.strokeStyle="#8fa0b4"; ctx.lineWidth=1;
@@ -511,15 +537,14 @@ function ticksY(r,lo,hi,left,n){
     if (left) ctx.fillText(fmtT(t),r.x-6,y);
   }
 }
-const MONO = 'ui-monospace, Menlo, Consolas, monospace';
 function labelX(r,txt){
   ctx.fillStyle="#16202e"; ctx.font="11px "+MONO;
   ctx.textAlign="center"; ctx.textBaseline="top";
-  ctx.fillText(txt,r.x+r.w/2,r.y+r.h+17);
+  ctx.fillText(txt,r.x+r.w/2,r.y+r.h+16);
 }
 function labelY(r,txt){
   ctx.save(); ctx.fillStyle="#16202e"; ctx.font="11px "+MONO;
-  ctx.translate(r.x-GEO.labL+13,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+  ctx.translate(r.x-L.labL+12,r.y+r.h/2); ctx.rotate(-Math.PI/2);
   ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(txt,0,0); ctx.restore();
 }
 function dashed(x1,y1,x2,y2,hot){
@@ -532,8 +557,6 @@ function dashed(x1,y1,x2,y2,hot){
   ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
   ctx.restore();
 }
-
-/* ---- panels ---- */
 function drawPanel(p){
   const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
   if (nH<2||nV<2){ ctx.fillStyle="#f2f5f8"; ctx.fillRect(r.x,r.y,r.w,r.h); box(r); return; }
@@ -553,8 +576,6 @@ function drawPanel(p){
   ctx.textAlign="right"; ctx.textBaseline="bottom";
   ctx.fillText(axName(p.fix)+" = "+fmtT(axVal(p.fix,S.idx[p.fix])), r.x+r.w-5, r.y-3);
 }
-
-/* ---- 1-D strips ---- */
 function cutData(a){
   const n=S.dims[a], o=[0,1,2].filter(d=>d!==a);
   const base=S.idx[o[0]]*S.strides[o[0]]+S.idx[o[1]]*S.strides[o[1]];
@@ -568,8 +589,7 @@ function cutData(a){
 }
 function drawStrip(s){
   const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
-  ctx.fillStyle="#fbfcfd"; ctx.fillRect(r.x,r.y,r.w,r.h);
-  box(r);
+  ctx.fillStyle="#fbfcfd"; ctx.fillRect(r.x,r.y,r.w,r.h); box(r);
   if (n<2||!S.values) return;
   const {y,lo,hi}=cutData(s.ax);
   ctx.save(); ctx.beginPath(); ctx.rect(r.x,r.y,r.w,r.h); ctx.clip();
@@ -589,8 +609,7 @@ function drawStrip(s){
     }
   }
   ctx.stroke(); ctx.restore();
-
-  const hot = HOT&&HOT.strip===s.key;
+  const hot=HOT&&HOT.strip===s.key;
   if (s.dir==="h"){
     const X=pxOf(pr,s.ax,S.idx[s.ax]);
     ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=hot?2:1.1;
@@ -603,13 +622,10 @@ function drawStrip(s){
     ctx.strokeStyle=hot?"#a82d27":"#16202e";
     ctx.beginPath(); ctx.moveTo(r.x,Y); ctx.lineTo(r.x+r.w,Y); ctx.stroke(); ctx.restore();
     ctx.fillStyle="#5d6b7d"; ctx.font="9.5px "+MONO;
-    ctx.textAlign="left"; ctx.textBaseline="top";
-    ctx.fillText(fmtT(hi),r.x+2,r.y+r.h+5);
+    ctx.textAlign="left"; ctx.textBaseline="top"; ctx.fillText(fmtT(hi),r.x+2,r.y+r.h+5);
     ctx.textAlign="right"; ctx.fillText(fmtT(lo),r.x+r.w,r.y+r.h+5);
   }
 }
-
-/* ---- colorbar ---- */
 function drawColorbar(){
   const r=L.cbar, lut=activeLUT();
   const img=ctx.createImageData(1,256);
@@ -617,20 +633,19 @@ function drawColorbar(){
     const li=(255-i)*3, o=i*4;
     img.data[o]=lut[li];img.data[o+1]=lut[li+1];img.data[o+2]=lut[li+2];img.data[o+3]=255;
   }
-  if (!drawColorbar._c){ drawColorbar._c=document.createElement("canvas"); drawColorbar._c.width=1; drawColorbar._c.height=256; }
+  if (!drawColorbar._c){ drawColorbar._c=document.createElement("canvas");
+    drawColorbar._c.width=1; drawColorbar._c.height=256; }
   drawColorbar._c.getContext("2d").putImageData(img,0,0);
   ctx.imageSmoothingEnabled=true;
   ctx.drawImage(drawColorbar._c,0,0,1,256,r.x,r.y,r.w,r.h);
   box(r);
   ctx.fillStyle="#16202e"; ctx.font="10px "+MONO; ctx.textAlign="left";
-  ctx.textBaseline="top";    ctx.fillText(fmtT(S.vmax),r.x+r.w+6,r.y);
-  ctx.textBaseline="bottom"; ctx.fillText(fmtT(S.vmin),r.x+r.w+6,r.y+r.h);
-  ctx.save(); ctx.translate(r.x+r.w+50,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+  ctx.textBaseline="top"; ctx.fillText(fmtT(S.vmax),r.x+r.w+5,r.y);
+  ctx.textBaseline="bottom"; ctx.fillText(fmtT(S.vmin),r.x+r.w+5,r.y+r.h);
+  ctx.save(); ctx.translate(r.x+r.w+45,r.y+r.h/2); ctx.rotate(-Math.PI/2);
   ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font="11px "+MONO;
   ctx.fillText(S.dataName.split("/").pop(),0,0); ctx.restore();
 }
-
-/* ---- readout quadrant ---- */
 function drawInfo(){
   const r=L.info;
   ctx.fillStyle="#16202e"; ctx.fillRect(r.x,r.y,r.w,r.h);
@@ -640,21 +655,19 @@ function drawInfo(){
   for (let d=0;d<3;d++){
     if (S.dims[d]<2) continue;
     ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
-    ctx.fillText(axName(d).toUpperCase(),r.x+20,y-13);
-    ctx.fillStyle="#ffffff"; ctx.font="17px "+MONO;
-    ctx.fillText(fmt(axVal(d,S.idx[d])),r.x+20,y+4);
-    ctx.fillStyle="#6f8399"; ctx.font="11px "+MONO;
-    ctx.fillText("index "+(S.idx[d]+1)+" / "+S.dims[d],r.x+180,y+4);
-    y+=40;
+    ctx.fillText(axName(d).toUpperCase(),r.x+18,y-13);
+    ctx.fillStyle="#ffffff"; ctx.font="16px "+MONO;
+    ctx.fillText(fmt(axVal(d,S.idx[d])),r.x+18,y+4);
+    ctx.fillStyle="#6f8399"; ctx.font="10.5px "+MONO;
+    ctx.fillText("index "+(S.idx[d]+1)+" / "+S.dims[d],r.x+Math.min(170,r.w-95),y+4);
+    y+=38;
   }
   ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
-  ctx.fillText(S.dataName.split("/").pop().toUpperCase(),r.x+20,y-13);
-  ctx.fillStyle="#8fd3b6"; ctx.font="21px "+MONO;
-  ctx.fillText(fmt(v),r.x+20,y+6);
-  ctx.fillStyle="#61748a"; ctx.font="10.5px "+MONO;
-  ctx.textBaseline="bottom";
-  ctx.fillText("drag dashed lines to move slices",r.x+20,r.y+r.h-26);
-  ctx.fillText("wheel over a panel steps its slice",r.x+20,r.y+r.h-11);
+  ctx.fillText(S.dataName.split("/").pop().toUpperCase(),r.x+18,y-13);
+  ctx.fillStyle="#8fd3b6"; ctx.font="20px "+MONO;
+  ctx.fillText(fmt(v),r.x+18,y+6);
+  ctx.fillStyle="#61748a"; ctx.font="10px "+MONO; ctx.textBaseline="bottom";
+  ctx.fillText(S.fileName,r.x+18,r.y+r.h-12);
 }
 
 let raf=false;
@@ -670,12 +683,9 @@ function draw(){
   });
 }
 
-/* ===========================================================
-   Interaction — grab the dashed lines
-   =========================================================== */
+/* ---------------- dragging the dashed lines ---------------- */
 let HOT=null, DRAG=null;
 const NEAR=7;
-
 function hit(x,y){
   for (const p of PAN){
     const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
@@ -699,46 +709,37 @@ function hit(x,y){
   if (x>=c.x-4&&x<=c.x+c.w+4&&y>=c.y&&y<=c.y+c.h) return {cbar:true};
   return null;
 }
-
 function applyDrag(t,x,y){
   if (t.panel){
     const p=PAN.find(q=>q.key===t.panel), r=L[p.key];
     if (t.mode==="v"||t.mode==="both") S.idx[p.h]=ixOf(r,p.h,x);
     if (t.mode==="h"||t.mode==="both") S.idx[p.v]=iyOf(r,p.v,y);
   } else if (t.strip){
-    const s=STRIP.find(q=>q.key===t.strip), pr=L[s.ref], n=S.dims[s.ax];
-    S.idx[s.ax] = s.dir==="h" ? ixOf(pr,s.ax,x) : iyOf(pr,s.ax,y);
+    const s=STRIP.find(q=>q.key===t.strip), pr=L[s.ref];
+    S.idx[s.ax]= s.dir==="h" ? ixOf(pr,s.ax,x) : iyOf(pr,s.ax,y);
   }
   draw();
 }
-
-function pos(ev){
-  const b=cv.getBoundingClientRect();
-  return [ev.clientX-b.left, ev.clientY-b.top];
-}
+const pos=ev=>{ const b=cv.getBoundingClientRect(); return [ev.clientX-b.left,ev.clientY-b.top]; };
 cv.addEventListener("pointermove",ev=>{
   if (!S.values||!L) return;
   const [x,y]=pos(ev);
   if (DRAG){
     if (DRAG.cbar){
-      const dy=y-DRAG.y0, f=(S.vmax-S.vmin)/L.cbar.h;
-      const sh=dy*f;                                  // drag down → window moves up in value
-      setRange(DRAG.v0+sh,DRAG.v1+sh,true);
+      const f=(S.vmax-S.vmin)/L.cbar.h, sh=(y-DRAG.y0)*f;
+      setRange(DRAG.v0+sh,DRAG.v1+sh);
     } else applyDrag(DRAG,x,y);
     return;
   }
   const h=hit(x,y);
-  const changed = JSON.stringify(h)!==JSON.stringify(HOT);
+  const changed=JSON.stringify(h)!==JSON.stringify(HOT);
   HOT=h;
-  cv.style.cursor = !h ? "default"
-    : h.cbar ? "ns-resize"
-    : h.mode==="v" ? "ew-resize"
-    : h.mode==="h" ? "ns-resize" : "crosshair";
+  cv.style.cursor=!h?"default":h.cbar?"ns-resize":h.mode==="v"?"ew-resize":h.mode==="h"?"ns-resize":"crosshair";
   if (changed) draw();
 });
 cv.addEventListener("pointerdown",ev=>{
   if (!S.values||!L) return;
-  const [x,y]=pos(ev); const h=hit(x,y);
+  const [x,y]=pos(ev), h=hit(x,y);
   if (!h) return;
   cv.setPointerCapture(ev.pointerId);
   if (h.cbar) DRAG={cbar:true,y0:y,v0:S.vmin,v1:S.vmax};
@@ -748,39 +749,35 @@ const endDrag=ev=>{ DRAG=null; try{cv.releasePointerCapture(ev.pointerId);}catch
 cv.addEventListener("pointerup",endDrag);
 cv.addEventListener("pointercancel",endDrag);
 cv.addEventListener("pointerleave",()=>{ if(!DRAG&&HOT){HOT=null;draw();} });
-
 cv.addEventListener("wheel",ev=>{
   if (!S.values||!L) return;
-  const [x,y]=pos(ev); const h=hit(x,y);
+  const [x,y]=pos(ev), h=hit(x,y);
   if (!h) return;
   ev.preventDefault();
-  if (h.cbar){                                        // wheel over the bar scales the window
+  if (h.cbar){
     const mid=(S.vmin+S.vmax)/2, half=(S.vmax-S.vmin)/2*(ev.deltaY>0?1.12:0.893);
-    setRange(mid-half,mid+half,true);
-    return;
+    setRange(mid-half,mid+half); return;
   }
   if (h.panel){
-    const p=PAN.find(q=>q.key===h.panel), d=p.fix;
+    const d=PAN.find(q=>q.key===h.panel).fix;
     S.idx[d]=Math.max(0,Math.min(S.dims[d]-1,S.idx[d]+(ev.deltaY>0?1:-1)));
     draw();
   }
 },{passive:false});
-
 window.addEventListener("keydown",e=>{
   if (!S.values) return;
   if (["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) return;
-  const map={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowDown:[1,-1],ArrowUp:[1,1],PageDown:[2,-1],PageUp:[2,1]};
+  const map={ArrowLeft:[2,-1],ArrowRight:[2,1],ArrowDown:[0,-1],ArrowUp:[0,1],PageDown:[1,-1],PageUp:[1,1]};
   const m=map[e.key]; if (!m) return;
   e.preventDefault();
   S.idx[m[0]]=Math.max(0,Math.min(S.dims[m[0]]-1,S.idx[m[0]]+m[1]));
   draw();
 });
-
 let rto;
-window.addEventListener("resize",()=>{ clearTimeout(rto); rto=setTimeout(()=>{resize();draw();},80); });
+window.addEventListener("resize",()=>{ clearTimeout(rto); rto=setTimeout(()=>{resize();draw();},70); });
 
 /* ---------------- display controls ---------------- */
-function setRange(lo,hi,quiet){
+function setRange(lo,hi){
   if (!(hi>lo)) return;
   S.vmin=lo; S.vmax=hi; S.epoch++;
   $("inVmin").value=+lo.toPrecision(6); $("inVmax").value=+hi.toPrecision(6);
@@ -788,7 +785,7 @@ function setRange(lo,hi,quiet){
 }
 $("selData").addEventListener("change",e=>selectData(e.target.value));
 ["selX","selY","selZ"].forEach((id,d)=>$(id).addEventListener("change",()=>{applyAxis(d);draw();}));
-$("selCmap").addEventListener("change",e=>{S.cmap=e.target.value;S._inv=null;S.epoch++;draw();});
+$("selCmap").addEventListener("change",e=>{S.cmap=e.target.value;S._inv=null;S.epoch++;store.set("cmap",S.cmap);draw();});
 $("cbInv").addEventListener("change",e=>{S.invert=e.target.checked;S._inv=null;S.epoch++;draw();});
 $("inVmin").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v<S.vmax){S.vmin=v;S.epoch++;draw();}});
 $("inVmax").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v>S.vmin){S.vmax=v;S.epoch++;draw();}});
@@ -815,27 +812,49 @@ $("fileInput").addEventListener("change",async e=>{const f=e.target.files[0];if(
 ["dragleave","drop"].forEach(t=>window.addEventListener(t,e=>{e.preventDefault();if(t==="dragleave"&&e.relatedTarget)return;document.body.classList.remove("drag");}));
 window.addEventListener("drop",async e=>{const f=e.dataTransfer.files[0];if(f)openBuffer(await f.arrayBuffer(),f.name);});
 
-/* ---------------- Drive ---------------- */
-let tokenClient=null;
-function connect(then){
-  if (S.token){ then&&then(); return; }
-  if (!window.google||!google.accounts){ status("Google sign-in library did not load","err"); return; }
-  tokenClient=tokenClient||google.accounts.oauth2.initTokenClient({
+/* ===========================================================
+   Drive — silent sign-in, remembered folder, one-click files
+   =========================================================== */
+let tokenClient=null, silent=false, renewTimer=null;
+
+function initTokenClient(){
+  if (tokenClient||!window.google||!google.accounts||!google.accounts.oauth2) return false;
+  tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID, scope:SCOPE,
     callback:resp=>{
-      if (resp.error){ status("sign-in failed: "+resp.error,"err"); return; }
+      if (resp.error){ tokenFailed(resp.error); return; }
       S.token=resp.access_token;
-      setTimeout(()=>{S.token=null;},(resp.expires_in?resp.expires_in-60:3500)*1000);
-      $("bFolder").disabled=false; $("bFiles").disabled=false;
-      $("bConnect").textContent="Signed in"; status("Signed in","ok");
+      clearTimeout(renewTimer);
+      const ttl=(resp.expires_in?resp.expires_in-120:3300)*1000;
+      renewTimer=setTimeout(()=>{ silent=true; tokenClient.requestAccessToken({prompt:""}); },ttl);
+      $("bConnect").textContent="Signed in";
+      $("bConnect").disabled=true;
       if (S.folderId) listFolder(S.folderId);
-      then&&then();
+      else { status("Signed in — choose a folder","ok"); openPicker(true); }
     },
-    error_callback:err=>status("sign-in cancelled"+(err&&err.type?" ("+err.type+")":""),"err")
+    error_callback:err=>tokenFailed(err&&err.type||"cancelled")
   });
+  return true;
+}
+function tokenFailed(why){
+  S.token=null;
+  $("bConnect").disabled=false;
+  $("bConnect").textContent="Connect Drive";
+  if (silent){ silent=false; status("Sign in to load your folder"); }
+  else status("sign-in failed: "+why,"err");
+}
+/* prompt:"" asks Google for a token without showing anything, which works
+   once the user has consented before.  If it cannot, we fall back to the
+   button and the ordinary consent flow.                                   */
+function connectSilent(){ if (initTokenClient()){ silent=true; tokenClient.requestAccessToken({prompt:""}); } }
+function connect(then){
+  if (S.token){ then&&then(); return; }
+  if (!initTokenClient()){ status("Google sign-in library did not load","err"); return; }
+  silent=false; S._after=then;
   tokenClient.requestAccessToken();
 }
 $("bConnect").addEventListener("click",()=>connect());
+
 function api(path){
   return fetch("https://www.googleapis.com"+path,{headers:{Authorization:"Bearer "+S.token}})
     .then(async res=>{ const t=await res.text(); let j=null; try{j=JSON.parse(t);}catch(e){}
@@ -849,22 +868,27 @@ function openPicker(foldersOnly){
     .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
   const b=new google.picker.PickerBuilder()
     .setOAuthToken(S.token).setDeveloperKey(API_KEY).setAppId(APP_ID)
-    .addView(view("My Drive").setOwnedByMe(true))
     .addView(view("Shared with me").setOwnedByMe(false))
+    .addView(view("My Drive").setOwnedByMe(true))
     .addView(view("Shared drives").setEnableDrives(true))
     .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
     .setCallback(data=>{
       if (data.action!==google.picker.Action.PICKED) return;
       const doc=data.docs[0];
-      if (doc.mimeType===FOLDER_MIME){ S.folderId=doc.id; saveHash(); listFolder(doc.id); }
-      else showFiles(data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes})));
+      if (doc.mimeType===FOLDER_MIME){
+        S.folderId=doc.id; store.set("folder",doc.id); store.del("file");
+        history.replaceState(null,"","#folder="+doc.id);
+        $("folderName").textContent=doc.name||"folder";
+        $("folderName").classList.remove("hidden");
+        listFolder(doc.id);
+      } else showFiles(data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes})),true);
     });
   if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
   if (location.origin) b.setOrigin(location.origin);
   b.build().setVisible(true);
 }
 $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
-$("bFiles").addEventListener("click",()=>connect(()=>openPicker(false)));
+
 function listFolder(id){
   status("Listing folder…");
   const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
@@ -872,26 +896,37 @@ function listFolder(id){
       "&supportsAllDrives=true&includeItemsFromAllDrives=true")
     .then(r=>{
       const fs=(r.files||[]).filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
-      if (!fs.length){ status("no .mat files in that folder","err"); showFiles([]); return; }
-      showFiles(fs.map(f=>({id:f.id,name:f.name,size:f.size})));
-      status(fs.length+" file"+(fs.length===1?"":"s")+" available","ok");
       $("bShare").classList.remove("hidden");
+      if (!fs.length){ status("no .mat files in that folder","err"); showFiles([]); return; }
+      showFiles(fs.map(f=>({id:f.id,name:f.name,size:f.size})),true);
     })
-    .catch(e=>status("cannot list folder: "+e.message,"err"));
+    .catch(e=>{
+      status("cannot open that folder: "+e.message,"err");
+      store.del("folder");
+    });
 }
-function showFiles(list){
-  const box=$("files"); box.innerHTML="";
-  $("filesBar").classList.toggle("hidden",!list.length);
+function showFiles(list,autoOpen){
+  const box=$("fileList"); box.innerHTML="";
+  if (!list.length){ box.innerHTML='<div class="none">No .mat files here.</div>'; return; }
+  const want=store.get("file");
+  let target=null;
   for (const f of list){
     const b=document.createElement("button");
-    b.className="chip";
+    b.className="file";
     b.innerHTML=f.name+(f.size?'<span class="sz">'+fmtBytes(+f.size)+"</span>":"");
-    b.addEventListener("click",()=>{ [...box.children].forEach(c=>c.classList.remove("on")); b.classList.add("on"); loadDriveFile(f); });
+    b.addEventListener("click",()=>{
+      [...box.children].forEach(c=>c.classList.remove("on"));
+      b.classList.add("on"); loadDriveFile(f);
+    });
     box.appendChild(b);
+    if (f.id===want) target=b;
   }
+  status(list.length+" file"+(list.length===1?"":"s"),"ok");
+  if (autoOpen&&target) target.click();
 }
 async function loadDriveFile(f){
   if (!S.token){ connect(()=>loadDriveFile(f)); return; }
+  S.fileId=f.id; store.set("file",f.id);
   try{
     status("Downloading "+f.name+" …");
     const res=await fetch("https://www.googleapis.com/drive/v3/files/"+f.id+"?alt=media&supportsAllDrives=true",
@@ -904,7 +939,7 @@ async function loadDriveFile(f){
       const cs=[]; let got=0;
       for(;;){ const {done,value}=await rd.read(); if (done) break;
         cs.push(value); got+=value.length;
-        status("Downloading "+f.name+" — "+fmtBytes(got)+(total?" of "+fmtBytes(total):"")); }
+        status(fmtBytes(got)+(total?" of "+fmtBytes(total):"")); }
       const u=new Uint8Array(got); let o=0;
       for (const c of cs){ u.set(c,o); o+=c.length; }
       buf=u.buffer;
@@ -912,24 +947,38 @@ async function loadDriveFile(f){
     await openBuffer(buf,f.name);
   }catch(e){ status("download failed: "+e.message,"err"); }
 }
-function saveHash(){ if (S.folderId) history.replaceState(null,"","#folder="+S.folderId); }
 $("bShare").addEventListener("click",()=>{
   const url=location.origin+location.pathname+"#folder="+S.folderId;
   navigator.clipboard.writeText(url).then(
-    ()=>status("Link copied — send it to a collaborator you have shared the folder with","ok"),
+    ()=>status("Link copied — send it to someone you shared the folder with","ok"),
     ()=>status(url,""));
 });
 
 /* ---------------- boot ---------------- */
-(function(){ const p=new URLSearchParams(location.hash.slice(1)); if (p.get("folder")) S.folderId=p.get("folder"); })();
+(function(){
+  const p=new URLSearchParams(location.hash.slice(1));
+  const fromHash=p.get("folder");
+  if (fromHash){ S.folderId=fromHash; store.set("folder",fromHash); }
+  else S.folderId=store.get("folder");
+  if (S.folderId){ $("folderName").textContent="folder "+S.folderId.slice(0,14)+"…";
+                   $("folderName").classList.remove("hidden"); }
+})();
 (function waitPicker(){ if (window.gapi) gapi.load("picker",()=>{S.pickerReady=true;}); else setTimeout(waitPicker,250); })();
+(function waitGis(n){
+  if (initTokenClient()){ if (S.folderId) connectSilent(); return; }
+  if (n>40) return;
+  setTimeout(()=>waitGis(n+1),200);
+})(0);
+
 try{
   const eng=await loadH5();
   S.h5=eng.h; S.fs=eng.fs;
-  status(S.folderId?"Ready — sign in to open the shared folder":"Ready");
+  if (!S.token) status(S.folderId?"Restoring your folder…":"Ready — choose a folder");
 }catch(e){
   status("could not load the HDF5 engine — check the network and reload","err");
 }
+window.addEventListener("load",()=>{ resize(); draw(); });
+resize();
 </script>
 </body>
 </html>
