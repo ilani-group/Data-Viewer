@@ -212,7 +212,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 8 — 2 Aug 2026";
+const BUILD = "build 9 — 2 Aug 2026";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -902,11 +902,15 @@ function api(path){
       if (!res.ok) throw new Error((j&&j.error&&j.error.message)||res.status+" "+res.statusText);
       return j; });
 }
-function openPicker(foldersOnly){
+function openPicker(foldersOnly,startIn){
   if (!S.pickerReady){ status("Picker is still loading","err"); return; }
-  const view=label=>new google.picker.DocsView(google.picker.ViewId.DOCS)
-    .setIncludeFolders(true).setSelectFolderEnabled(foldersOnly)
-    .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
+  const view=label=>{
+    const v=new google.picker.DocsView(google.picker.ViewId.DOCS)
+      .setIncludeFolders(true).setSelectFolderEnabled(foldersOnly)
+      .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
+    if (startIn){ try{ v.setParent(startIn); }catch(e){} }
+    return v;
+  };
   const b=new google.picker.PickerBuilder()
     .setOAuthToken(S.token).setDeveloperKey(API_KEY).setAppId(APP_ID)
     .addView(view("Shared with me").setOwnedByMe(false))
@@ -918,9 +922,11 @@ function openPicker(foldersOnly){
       const doc=data.docs[0];
       if (doc.mimeType===FOLDER_MIME){ store.del("file"); kidCache.clear(); selectFolder(doc.id,true); }
       else {
-        const picked=data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes,mimeType:d.mimeType}));
-        kidCache.clear();
-        if (S.folderId) selectFolder(S.folderId,false);   // re-list; the picks are granted now
+        const picked=data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes,
+                                        mimeType:d.mimeType,parentId:d.parentId}));
+        for (const f of picked) GRANTED.set(f.id,f);
+        kidCache.clear(); metaCache.clear();
+        if (S.folderId) selectFolder(S.folderId,false);
         else renderList(picked,true);
       }
     });
@@ -934,6 +940,14 @@ $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
    drive.file only exposes what the user handed the app, so the tree is
    rooted at the highest ancestor still readable and stops there.         */
 const metaCache=new Map(), kidCache=new Map();
+/* Google's folder grant is incomplete: picking a folder does not reliably
+   authorise everything inside it.  Anything picked explicitly is recorded
+   here as well, so it shows up even if files.list still omits it.        */
+const GRANTED=new Map();
+try{ for (const f of JSON.parse(store.get("granted")||"[]")) GRANTED.set(f.id,f); }catch(e){}
+function rememberGranted(){
+  try{ store.set("granted",JSON.stringify([...GRANTED.values()].slice(-400))); }catch(e){}
+}
 async function meta(id){
   if (metaCache.has(id)) return metaCache.get(id);
   const m=await api("/drive/v3/files/"+id+"?supportsAllDrives=true&fields=id,name,parents,mimeType");
@@ -1044,6 +1058,11 @@ async function selectFolder(id,autoOpen){
 }
 function renderList(items,autoOpen){
   const box=$("fileList"); box.innerHTML="";
+  const seen=new Set(items.map(f=>f.id));
+  for (const f of GRANTED.values())
+    if (f.parentId===S.folderId&&!seen.has(f.id)){ items=items.concat([f]); seen.add(f.id); }
+  rememberGranted();
+  items.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const data =items.filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
   const other=items.filter(f=>f.mimeType!==FOLDER_MIME&&!DATA_EXT.test(f.name));
   const want=store.get("file");
@@ -1071,11 +1090,21 @@ function renderList(items,autoOpen){
     }
   }
   if (!data.length&&!other.length)
-    box.innerHTML='<div class="none">No files here. Use <b>Add files…</b> to grant individual files.</div>';
+    box.innerHTML='<div class="none">Nothing visible here yet.<br><br>Google only shows this app the items you have handed it. Press <b>Add files…</b>, select everything (Ctrl+A), and Insert — once per folder.</div>';
+  else {
+    const tip=document.createElement("div");
+    tip.className="grouphdr"; tip.style.textTransform="none"; tip.style.letterSpacing="0";
+    tip.style.fontSize="10px"; tip.style.lineHeight="1.6";
+    tip.textContent="Missing something? Add files… → Ctrl+A → Insert.";
+    box.appendChild(tip);
+  }
   status(data.length+" data file"+(data.length===1?"":"s")+(other.length?", "+other.length+" other":""),"ok");
   if (autoOpen&&target) target.click();
 }
-$("bAddFiles").addEventListener("click",()=>connect(()=>openPicker(false)));
+$("bAddFiles").addEventListener("click",()=>connect(()=>{
+  status("Select everything you want (Ctrl+A selects all), then Insert");
+  openPicker(false,S.folderId);
+}));
 
 async function loadDriveFile(f){
   if (!S.token){ connect(()=>loadDriveFile(f)); return; }
