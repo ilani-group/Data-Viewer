@@ -116,8 +116,8 @@
     <div class="sec" style="border-bottom:1px solid var(--rule);padding-bottom:9px">
       <h2>Location</h2>
       <div class="btns">
-        <button class="ghost row" id="bFolder">Add folder…</button>
-        <button class="ghost row" id="bAddFiles">Add files…</button>
+        <button class="ghost row" id="bFolder">Find folder…</button>
+        <button class="ghost row" id="bRefresh">Refresh</button>
       </div>
     </div>
     <div id="crumbs" class="crumbs hidden"></div>
@@ -208,11 +208,11 @@
 const CLIENT_ID = "498900799605-2uhlfk14fjr7dkfppv8qlhsuh1p9g80g.apps.googleusercontent.com";
 const API_KEY   = "AIzaSyDNh7rxTC3pNKR9Ye3xOsBJYwyBH7pKDh8";
 const APP_ID    = "498900799605";
-const SCOPE     = "https://www.googleapis.com/auth/drive.file";
+const SCOPE     = "https://www.googleapis.com/auth/drive.readonly";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 9 — 2 Aug 2026";
+const BUILD = "build 10 — drive.readonly";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -864,7 +864,7 @@ function initTokenClient(){
       $("bConnect").disabled=true;
       api("/oauth2/v3/userinfo").then(u=>{ if (u&&u.email) store.set("hint",u.email); }).catch(()=>{});
       if (S.folderId) selectFolder(S.folderId,true);
-      else { status("Signed in — choose a folder","ok"); openPicker(true); }
+      else { status("Signed in","ok"); initTree(); }
     },
     error_callback:err=>tokenFailed(err&&err.type||"cancelled")
   });
@@ -920,15 +920,8 @@ function openPicker(foldersOnly,startIn){
     .setCallback(data=>{
       if (data.action!==google.picker.Action.PICKED) return;
       const doc=data.docs[0];
-      if (doc.mimeType===FOLDER_MIME){ store.del("file"); kidCache.clear(); selectFolder(doc.id,true); }
-      else {
-        const picked=data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes,
-                                        mimeType:d.mimeType,parentId:d.parentId}));
-        for (const f of picked) GRANTED.set(f.id,f);
-        kidCache.clear(); metaCache.clear();
-        if (S.folderId) selectFolder(S.folderId,false);
-        else renderList(picked,true);
-      }
+      if (doc.mimeType===FOLDER_MIME){ store.del("file"); selectFolder(doc.id,true); }
+      else if (doc.parentId) selectFolder(doc.parentId,false);
     });
   if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
   if (location.origin) b.setOrigin(location.origin);
@@ -936,57 +929,55 @@ function openPicker(foldersOnly,startIn){
 }
 $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
 
-/* ---- folder navigation: breadcrumb + lazy tree + file list --------------
-   drive.file only exposes what the user handed the app, so the tree is
-   rooted at the highest ancestor still readable and stops there.         */
+/* ---- folder navigation ---------------------------------------------------
+   With drive.readonly the app sees whatever the signed-in user sees, so the
+   tree can be rooted at My Drive and Shared with me, exactly like Drive.    */
+const SHARED="__shared";
+let ROOT_ID=null, ROOTS=[], SEL=null;
 const metaCache=new Map(), kidCache=new Map();
-/* Google's folder grant is incomplete: picking a folder does not reliably
-   authorise everything inside it.  Anything picked explicitly is recorded
-   here as well, so it shows up even if files.list still omits it.        */
-const GRANTED=new Map();
-try{ for (const f of JSON.parse(store.get("granted")||"[]")) GRANTED.set(f.id,f); }catch(e){}
-function rememberGranted(){
-  try{ store.set("granted",JSON.stringify([...GRANTED.values()].slice(-400))); }catch(e){}
-}
+
 async function meta(id){
+  if (id===SHARED) return {id:SHARED,name:"Shared with me",parents:null};
   if (metaCache.has(id)) return metaCache.get(id);
   const m=await api("/drive/v3/files/"+id+"?supportsAllDrives=true&fields=id,name,parents,mimeType");
   metaCache.set(id,m); return m;
 }
 async function children(id,force){
   if (!force&&kidCache.has(id)) return kidCache.get(id);
+  const q = id===SHARED ? "sharedWithMe=true and trashed=false"
+                        : "'"+id+"' in parents and trashed=false";
   const out=[]; let page="";
   do{
-    const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
-    const r=await api("/drive/v3/files?q="+q+"&pageSize=200&orderBy=folder,name"+
-      "&fields=nextPageToken,files(id,name,mimeType,size)"+
+    const r=await api("/drive/v3/files?q="+encodeURIComponent(q)+
+      "&pageSize=200&orderBy=folder,name&fields=nextPageToken,files(id,name,mimeType,size)"+
       "&supportsAllDrives=true&includeItemsFromAllDrives=true"+(page?"&pageToken="+page:""));
     out.push(...(r.files||[])); page=r.nextPageToken||"";
   } while(page);
   kidCache.set(id,out); return out;
 }
-async function chainOf(id){                      // outermost readable ancestor first
+async function chainOf(id){                       // outermost first
   const out=[]; let cur=id, guard=0;
-  while (cur&&guard++<14){
+  while (cur&&guard++<16){
     let m; try{ m=await meta(cur); }catch(e){ break; }
-    out.unshift({id:m.id,name:m.name});
+    out.unshift({id:m.id,name:m.id===ROOT_ID?"My Drive":m.name});
+    if (m.id===ROOT_ID||m.id===SHARED) break;
     cur=(m.parents&&m.parents[0])||null;
   }
   return out;
 }
 
-let TREE=null, SEL=null;
 const mkNode=(id,name)=>({id,name,kids:null,open:false});
-function findNode(n,id){
-  if (!n) return null;
-  if (n.id===id) return n;
-  for (const k of (n.kids||[])){ const f=findNode(k,id); if (f) return f; }
+function findNode(id){
+  for (const r of ROOTS){ const f=(function rec(n){
+    if (n.id===id) return n;
+    for (const k of (n.kids||[])){ const g=rec(k); if (g) return g; }
+    return null; })(r); if (f) return f; }
   return null;
 }
 function drawTree(){
   const box=$("tree"); box.innerHTML="";
-  if (!TREE){ box.innerHTML='<div class="none">No folder yet.</div>'; return; }
-  (function rec(n,depth){
+  if (!ROOTS.length){ box.innerHTML='<div class="none">Sign in to browse.</div>'; return; }
+  for (const r of ROOTS) (function rec(n,depth){
     const b=document.createElement("button");
     b.className="node"+(n.id===SEL?" sel":"");
     b.style.paddingLeft=(8+depth*13)+"px";
@@ -999,23 +990,22 @@ function drawTree(){
     b.addEventListener("click",()=>selectFolder(n.id,false));
     box.appendChild(b);
     if (n.open) for (const k of (n.kids||[])) rec(k,depth+1);
-  })(TREE,0);
+  })(r,0);
+}
+async function loadKids(n){
+  if (n.kids!==null) return;
+  try{ n.kids=(await children(n.id)).filter(f=>f.mimeType===FOLDER_MIME).map(k=>mkNode(k.id,k.name)); }
+  catch(e){ n.kids=[]; }
 }
 async function toggle(n){
   n.open=!n.open;
-  if (n.open&&n.kids===null){
-    try{
-      const kids=(await children(n.id)).filter(f=>f.mimeType===FOLDER_MIME);
-      n.kids=kids.map(k=>mkNode(k.id,k.name));
-    }catch(e){ n.kids=[]; }
-  }
+  if (n.open) await loadKids(n);
   drawTree();
 }
 function drawCrumbs(chain){
-  const box=$("crumbs"); box.innerHTML="";
-  box.classList.remove("hidden");
+  const box=$("crumbs"); box.innerHTML=""; box.classList.remove("hidden");
   chain.forEach((c,i)=>{
-    if (i) { const s=document.createElement("span"); s.className="sep"; s.textContent="\u203A"; box.appendChild(s); }
+    if (i){ const sp=document.createElement("span"); sp.className="sep"; sp.textContent="\u203A"; box.appendChild(sp); }
     const b=document.createElement("button");
     b.textContent=c.name;
     if (i===chain.length-1) b.className="here";
@@ -1023,34 +1013,36 @@ function drawCrumbs(chain){
     box.appendChild(b);
   });
 }
+async function initTree(){
+  if (ROOTS.length) return;
+  try{ ROOT_ID=(await api("/drive/v3/files/root?fields=id")).id; }catch(e){ ROOT_ID="root"; }
+  ROOTS=[mkNode(ROOT_ID,"My Drive"), mkNode(SHARED,"Shared with me")];
+  await loadKids(ROOTS[0]); ROOTS[0].open=true;
+  await loadKids(ROOTS[1]); ROOTS[1].open=true;
+  drawTree();
+}
 async function selectFolder(id,autoOpen){
   if (!S.token){ connect(()=>selectFolder(id,autoOpen)); return; }
   status("Opening…");
   try{
+    await initTree();
     SEL=id; S.folderId=id;
     store.set("folder",id);
     history.replaceState(null,"","#folder="+id);
     const chain=await chainOf(id);
     if (chain.length) S.folderName=chain[chain.length-1].name;
-    drawCrumbs(chain);
-    /* grow the tree along the chain so the selection is visible in context */
-    if (!TREE||!findNode(TREE,chain[0].id)) TREE=mkNode(chain[0].id,chain[0].name);
-    let n=TREE;
-    for (let i=1;i<chain.length;i++){
-      if (n.kids===null){
-        try{ n.kids=(await children(n.id)).filter(f=>f.mimeType===FOLDER_MIME).map(k=>mkNode(k.id,k.name)); }
-        catch(e){ n.kids=[]; }
-      }
-      n.open=true;
+    drawCrumbs(chain.length?chain:[{id:id,name:"folder"}]);
+    /* graft the path into whichever root it belongs under */
+    let host = (chain.length&&chain[0].id===ROOT_ID) ? ROOTS[0] : ROOTS[1];
+    let n=host;
+    for (let i=(chain.length&&chain[0].id===ROOT_ID)?1:0;i<chain.length;i++){
+      await loadKids(n); n.open=true;
       let nx=n.kids.find(k=>k.id===chain[i].id);
       if (!nx){ nx=mkNode(chain[i].id,chain[i].name); n.kids.push(nx); }
       n=nx;
     }
-    const cur=findNode(TREE,id);
-    if (cur&&cur.kids===null){
-      try{ cur.kids=(await children(id)).filter(f=>f.mimeType===FOLDER_MIME).map(k=>mkNode(k.id,k.name)); cur.open=true; }
-      catch(e){ cur.kids=[]; }
-    }
+    const cur=findNode(id);
+    if (cur){ await loadKids(cur); cur.open=true; }
     drawTree();
     $("bShare").classList.remove("hidden");
     renderList(await children(id,true),autoOpen);
@@ -1058,11 +1050,6 @@ async function selectFolder(id,autoOpen){
 }
 function renderList(items,autoOpen){
   const box=$("fileList"); box.innerHTML="";
-  const seen=new Set(items.map(f=>f.id));
-  for (const f of GRANTED.values())
-    if (f.parentId===S.folderId&&!seen.has(f.id)){ items=items.concat([f]); seen.add(f.id); }
-  rememberGranted();
-  items.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const data =items.filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
   const other=items.filter(f=>f.mimeType!==FOLDER_MIME&&!DATA_EXT.test(f.name));
   const want=store.get("file");
@@ -1089,22 +1076,16 @@ function renderList(items,autoOpen){
       box.appendChild(b);
     }
   }
-  if (!data.length&&!other.length)
-    box.innerHTML='<div class="none">Nothing visible here yet.<br><br>Google only shows this app the items you have handed it. Press <b>Add files…</b>, select everything (Ctrl+A), and Insert — once per folder.</div>';
-  else {
-    const tip=document.createElement("div");
-    tip.className="grouphdr"; tip.style.textTransform="none"; tip.style.letterSpacing="0";
-    tip.style.fontSize="10px"; tip.style.lineHeight="1.6";
-    tip.textContent="Missing something? Add files… → Ctrl+A → Insert.";
-    box.appendChild(tip);
-  }
+  if (!data.length&&!other.length) box.innerHTML='<div class="none">This folder has no files.</div>';
   status(data.length+" data file"+(data.length===1?"":"s")+(other.length?", "+other.length+" other":""),"ok");
   if (autoOpen&&target) target.click();
 }
-$("bAddFiles").addEventListener("click",()=>connect(()=>{
-  status("Select everything you want (Ctrl+A selects all), then Insert");
-  openPicker(false,S.folderId);
-}));
+$("bRefresh").addEventListener("click",()=>{
+  kidCache.clear(); metaCache.clear();
+  for (const r of ROOTS) r.kids=null;
+  ROOTS=[]; 
+  if (S.folderId) selectFolder(S.folderId,false); else initTree();
+});
 
 async function loadDriveFile(f){
   if (!S.token){ connect(()=>loadDriveFile(f)); return; }
