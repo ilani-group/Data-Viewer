@@ -312,7 +312,7 @@ function activeLUT(){
    State
    ============================================================ */
 const S = {
-  h5: null, file: null, fileName: "",
+  h5: null, fs: null, tmpPath: null, file: null, fileName: "",
   candidates: [], vectors: [],
   dims: [1,1,1], strides: [1,1,1],
   values: null, names: ["x","y","z"], dataName: "",
@@ -336,8 +336,10 @@ async function loadH5(){
     try{
       const mod = await import(/* @vite-ignore */ u);
       const h = mod.default || mod;
-      await h.ready;
-      return h;
+      const M = await h.ready;                       // resolves to the emscripten module
+      const fs = (M && M.FS) || h.FS || mod.FS;      // FS lives there, not on the default export
+      if (!fs || typeof fs.writeFile !== "function") throw new Error("h5wasm loaded without a filesystem");
+      return { h, fs };
     }catch(e){ last = e; console.warn("h5wasm load failed from", u, e); }
   }
   throw last || new Error("h5wasm unavailable");
@@ -391,8 +393,10 @@ async function openBuffer(buf, name){
   await new Promise(r => setTimeout(r, 10));
   try{
     if (S.file){ try{ S.file.close(); }catch(e){} S.file = null; }
+    if (S.tmpPath){ try{ S.fs.unlink(S.tmpPath); }catch(e){} }
     const tmp = "/work_" + Date.now() + ".h5";
-    S.h5.FS.writeFile(tmp, new Uint8Array(buf));
+    S.fs.writeFile(tmp, new Uint8Array(buf));
+    S.tmpPath = tmp;
     S.file = new S.h5.File(tmp, "r");
     S.fileName = name;
 
@@ -991,7 +995,8 @@ $("bShare").addEventListener("click", ()=>{
 })();
 
 try{
-  S.h5 = await loadH5();
+  const eng = await loadH5();
+  S.h5 = eng.h; S.fs = eng.fs;
   status(S.folderId ? "Ready — sign in to open the shared folder" : "Ready");
   if (S.folderId) $("bConnect").textContent = "Connect Drive";
 }catch(e){
