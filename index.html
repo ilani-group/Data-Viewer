@@ -85,6 +85,12 @@
   .node .car{width:13px;flex:0 0 13px;color:var(--muted);font-size:9px}
   .node.sel .car{color:#9fb0c4}
   .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .zoombar{display:flex;gap:6px}
+  .zb{flex:1;padding:7px 0;display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+  .zb:hover{background:var(--blueprint);border-color:var(--blueprint);color:#fff}
+  .zb.arm{background:var(--ink);border-color:var(--ink);color:#fff}
+  .zb svg{width:22px;height:22px;display:block}
   .grouphdr{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
     color:var(--muted);padding:9px 13px 4px}
   .dir{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:11.5px;
@@ -93,6 +99,12 @@
   .dir:hover{background:#e6ecf4;color:var(--ink)}
   .other{color:var(--muted);cursor:default}
   .other:hover{background:transparent;color:var(--muted)}
+  .zoombar{display:flex;gap:6px}
+  .zb{flex:1;padding:7px 0;display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+  .zb:hover{background:var(--blueprint);border-color:var(--blueprint);color:#fff}
+  .zb.arm{background:var(--ink);border-color:var(--ink);color:#fff}
+  .zb svg{width:22px;height:22px;display:block}
   .grouphdr{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
     color:var(--muted);padding:9px 13px 4px}
   .none{padding:16px 13px;font-size:12px;color:var(--muted)}
@@ -147,13 +159,42 @@
 
     <div class="sec"><div id="status">Loading HDF5 engine…</div></div>
 
-    <div class="sec hidden" id="secVar">
-      <h2>Dataset</h2>
-      <div class="fld"><label>Data</label><select id="selData"></select></div>
-      <div class="fld"><label>Dim 1 — vertical, top panels</label><select id="selX"></select></div>
-      <div class="fld"><label>Dim 2 — horizontal, top right</label><select id="selY"></select></div>
-      <div class="fld"><label>Dim 3 — horizontal, left column</label><select id="selZ"></select></div>
-      <p class="hint" id="dimsTag"></p>
+    <div class="hidden">
+      <select id="selData"></select><select id="selX"></select>
+      <select id="selY"></select><select id="selZ"></select>
+      <span id="dimsTag"></span>
+    </div>
+
+    <div class="sec hidden" id="secView">
+      <h2>Zoom</h2>
+      <div class="zoombar">
+        <button class="zb" id="zV" title="Vertical zoom — drag a band up or down">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M2 6h20" stroke-dasharray="3 2.5"/><path d="M2 18h20" stroke-dasharray="3 2.5"/>
+            <path d="M12 9.5v5"/><path d="M12 8.2 9.9 11"/><path d="M12 8.2 14.1 11"/>
+            <path d="M12 15.8 9.9 13"/><path d="M12 15.8 14.1 13"/>
+          </svg></button>
+        <button class="zb" id="zH" title="Horizontal zoom — drag a band left or right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M6 2v20" stroke-dasharray="3 2.5"/><path d="M18 2v20" stroke-dasharray="3 2.5"/>
+            <path d="M9.5 12h5"/><path d="M8.2 12 11 9.9"/><path d="M8.2 12 11 14.1"/>
+            <path d="M15.8 12 13 9.9"/><path d="M15.8 12 13 14.1"/>
+          </svg></button>
+        <button class="zb" id="zB" title="Box zoom — drag a rectangle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <rect x="3.5" y="4.5" width="17" height="15" stroke-dasharray="3 2.5"/>
+            <path d="M9.6 14.4 14.4 9.6"/><path d="M9.6 14.4v-3"/><path d="M9.6 14.4h3"/>
+            <path d="M14.4 9.6v3"/><path d="M14.4 9.6h-3"/>
+          </svg></button>
+        <button class="zb" id="zO" title="Zoom out to the full range">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <rect x="8.5" y="9" width="7" height="6" stroke-dasharray="2.5 2"/>
+            <path d="M6.2 6.2 3 3"/><path d="M3 6.4V3h3.4"/>
+            <path d="M17.8 6.2 21 3"/><path d="M21 6.4V3h-3.4"/>
+            <path d="M6.2 17.8 3 21"/><path d="M3 17.6V21h3.4"/>
+            <path d="M17.8 17.8 21 21"/><path d="M21 17.6V21h-3.4"/>
+          </svg></button>
+      </div>
     </div>
 
     <div class="sec hidden" id="secDisp">
@@ -212,7 +253,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.readonly";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 10 — drive.readonly";
+const BUILD = "build 11 — zoom";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -312,7 +353,7 @@ const S = {
   candidates:[], vectors:[],
   dims:[1,1,1], strides:[1,1,1], values:null,
   names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null], flip:[false,false,false],
-  idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
+  idx:[0,0,0], view:[[0,0],[0,0],[0,0]], vmin:0, vmax:1, fullMin:0, fullMax:1,
   cmap:store.get("cmap")||"whitejet7", invert:false, epoch:0,
   token:null, pickerReady:false, folderId:null, folderName:"", parentId:null, fileId:null
 };
@@ -381,7 +422,7 @@ async function openBuffer(buf,name){
     S.vectors=all.filter(e=>e.eff.length===1&&e.count>1).sort((a,b)=>a.path.localeCompare(b.path));
     if (!S.candidates.length) throw new Error("no 2-D or 3-D arrays in this file");
     fillSelect($("selData"),S.candidates.map(e=>({v:e.path,t:e.path+"  ["+e.eff.join(" × ")+"]"})));
-    $("secVar").classList.remove("hidden"); $("secDisp").classList.remove("hidden");
+    $("secDisp").classList.remove("hidden"); $("secView").classList.remove("hidden");
     selectData(S.candidates[0].path);
     status(name,"ok");
   }catch(e){ console.error(e); status(e.message,"err"); }
@@ -403,12 +444,24 @@ function selectData(path){
   let lo=Infinity,hi=-Infinity;
   for (let i=0;i<values.length;i++){const v=values[i];if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;}}
   if (!isFinite(lo)){lo=0;hi=1;}
-  S.fullMin=lo; S.fullMax=hi; S.vmin=lo; S.vmax=hi;
-  $("inVmin").value=+lo.toPrecision(6); $("inVmax").value=+hi.toPrecision(6);
+  S.fullMin=lo; S.fullMax=hi;
+  S.view=dims.map(d=>[0,d-1]);                     // start fully zoomed out
+  const pc=percentile(0.01,0.99);                  // a new dataset opens on 1-99%
+  S.vmin=pc?pc[0]:lo; S.vmax=pc?pc[1]:hi;
+  $("inVmin").value=+S.vmin.toPrecision(6); $("inVmax").value=+S.vmax.toPrecision(6);
   guessAxes();
   $("dimsTag").textContent=dims.join(" × ")+"  ·  "+fmt(lo)+" … "+fmt(hi);
   $("splash").classList.add("hidden");
   S.epoch++; resize(); draw();
+}
+function percentile(a,b){
+  if (!S.values) return null;
+  const N=S.values.length, st=Math.max(1,Math.floor(N/200000)), out=[];
+  for (let i=0;i<N;i+=st){ const v=S.values[i]; if (v===v) out.push(v); }
+  if (out.length<4) return null;
+  out.sort((x,y)=>x-y);
+  const lo=out[Math.floor(out.length*a)], hi=out[Math.floor(out.length*b)];
+  return hi>lo?[lo,hi]:null;
 }
 function guessAxes(){
   const opts=S.vectors.map(v=>({v:v.path,t:v.path+" ["+v.count+"]"}));
@@ -435,10 +488,10 @@ function applyAxis(d){
 const axVal=(d,i)=>{ const v=S.axes[d]; return (v&&v.length===S.dims[d])?v[i]:i+1; };
 const axName=d=>S.names[d];
 function axExtent(d){
-  const n=S.dims[d], v=S.axes[d];
-  if (!v||n<2||v.length!==n) return [-0.5,n-0.5];
-  const a=v[0], b=v[n-1], s=(b-a)/(n-1);
-  const lo=a-s/2, hi=b+s/2;
+  const n=S.dims[d], v=S.axes[d], a=S.view[d][0], b=S.view[d][1];
+  if (!v||n<2||v.length!==n) return [a-0.5,b+0.5];
+  const step=(b>a)?(v[b]-v[a])/(b-a):(n>1?(v[n-1]-v[0])/(n-1):1);
+  const lo=v[a]-step/2, hi=v[b]+step/2;
   return lo<=hi?[lo,hi]:[hi,lo];
 }
 function niceTicks(lo,hi,target){
@@ -511,9 +564,10 @@ function resize(){
 
 /* index -> fraction from the axis's low-value end; a descending vector is
    drawn flipped so values always increase upward and to the right.        */
-const frac   = (d,i)=>{ const t=(i+0.5)/S.dims[d]; return S.flip[d]?1-t:t; };
+const vlo=d=>S.view[d][0], vhi=d=>S.view[d][1], vn=d=>S.view[d][1]-S.view[d][0]+1;
+const frac   = (d,i)=>{ const t=(i-vlo(d)+0.5)/vn(d); return S.flip[d]?1-t:t; };
 const unfrac = (d,t)=>{ const u=S.flip[d]?1-t:t;
-                        return Math.max(0,Math.min(S.dims[d]-1,Math.floor(u*S.dims[d]))); };
+                        return Math.max(vlo(d),Math.min(vhi(d),vlo(d)+Math.floor(u*vn(d)))); };
 const pxOf=(r,d,i)=>r.x+frac(d,i)*r.w;
 const pyOf=(r,d,i)=>r.y+r.h-frac(d,i)*r.h;
 const ixOf=(r,d,x)=>unfrac(d,(x-r.x)/r.w);
@@ -521,7 +575,7 @@ const iyOf=(r,d,y)=>unfrac(d,(r.y+r.h-y)/r.h);
 
 const off={};
 function buildSlice(p){
-  const nH=S.dims[p.h], nV=S.dims[p.v];
+  const h0=vlo(p.h), v0=vlo(p.v), nH=vn(p.h), nV=vn(p.v);
   let o=off[p.key];
   if (!o||o.cv.width!==nH||o.cv.height!==nV){
     const c=document.createElement("canvas"); c.width=nH; c.height=nV;
@@ -532,11 +586,11 @@ function buildSlice(p){
   const k=255/((S.vmax-S.vmin)||1);
   const fh=S.flip[p.h], fv=S.flip[p.v];
   for (let j=0;j<nV;j++){
-    const rb=base+j*sv;
+    const rb=base+(v0+j)*sv;
     const row=(fv?j:nV-1-j)*nH*4;
     for (let i=0;i<nH;i++){
       const q=row+(fh?nH-1-i:i)*4;
-      const val=S.values[rb+i*sh];
+      const val=S.values[rb+(h0+i)*sh];
       if (val!==val){ px[q]=214;px[q+1]=219;px[q+2]=226;px[q+3]=255; continue; }
       let t=(val-S.vmin)*k; t=t<0?0:t>255?255:t;
       const li=(t|0)*3;
@@ -589,7 +643,7 @@ function dashed(x1,y1,x2,y2,hot){
   ctx.restore();
 }
 function drawPanel(p){
-  const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
+  const r=L[p.key], nH=vn(p.h), nV=vn(p.v);
   if (nH<2||nV<2){ ctx.fillStyle="#f2f5f8"; ctx.fillRect(r.x,r.y,r.w,r.h); box(r); return; }
   if (p._built!==S.idx[p.fix]||p._epoch!==S.epoch){
     p._o=buildSlice(p); p._built=S.idx[p.fix]; p._epoch=S.epoch;
@@ -608,34 +662,34 @@ function drawPanel(p){
   ctx.fillText(axName(p.fix)+" = "+fmtT(axVal(p.fix,S.idx[p.fix])), r.x+r.w-5, r.y-3);
 }
 function cutData(a){
-  const n=S.dims[a], o=[0,1,2].filter(d=>d!==a);
+  const a0=vlo(a), n=vn(a), o=[0,1,2].filter(d=>d!==a);
   const base=S.idx[o[0]]*S.strides[o[0]]+S.idx[o[1]]*S.strides[o[1]];
   const sa=S.strides[a], y=new Float64Array(n);
   let lo=Infinity,hi=-Infinity;
-  for (let i=0;i<n;i++){ const v=S.values[base+i*sa]; y[i]=v; if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;} }
+  for (let i=0;i<n;i++){ const v=S.values[base+(a0+i)*sa]; y[i]=v; if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;} }
   if (!isFinite(lo)){lo=0;hi=1;}
   if (lo===hi){lo-=1;hi+=1;}
   const pad=(hi-lo)*0.08;
-  return {y,lo:lo-pad,hi:hi+pad,n};
+  return {y,lo:lo-pad,hi:hi+pad,n,a0};
 }
 function drawStrip(s){
-  const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
+  const r=L[s.key], pr=L[s.ref], n=vn(s.ax);
   ctx.fillStyle="#fbfcfd"; ctx.fillRect(r.x,r.y,r.w,r.h); box(r);
   if (n<2||!S.values) return;
-  const {y,lo,hi}=cutData(s.ax);
+  const {y,lo,hi,a0}=cutData(s.ax);
   ctx.save(); ctx.beginPath(); ctx.rect(r.x,r.y,r.w,r.h); ctx.clip();
   ctx.strokeStyle="#1f3f77"; ctx.lineWidth=1.3; ctx.beginPath();
   let pen=false;
   if (s.dir==="h"){
     for (let i=0;i<n;i++){
       const v=y[i]; if (v!==v){pen=false;continue;}
-      const X=pxOf(pr,s.ax,i), Y=r.y+r.h-(v-lo)/(hi-lo)*r.h;
+      const X=pxOf(pr,s.ax,a0+i), Y=r.y+r.h-(v-lo)/(hi-lo)*r.h;
       pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
     }
   } else {
     for (let i=0;i<n;i++){
       const v=y[i]; if (v!==v){pen=false;continue;}
-      const Y=pyOf(pr,s.ax,i), X=r.x+r.w-(v-lo)/(hi-lo)*r.w;  // value grows leftward
+      const Y=pyOf(pr,s.ax,a0+i), X=r.x+r.w-(v-lo)/(hi-lo)*r.w;  // value grows leftward
       pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
     }
   }
@@ -710,8 +764,64 @@ function draw(){
     ctx.clearRect(0,0,cv.width,cv.height);
     for (const s of STRIP) drawStrip(s);
     for (const p of PAN) drawPanel(p);
-    drawColorbar(); drawInfo();
+    drawColorbar(); drawInfo(); drawZoomOverlay();
   });
+}
+
+/* ---------------- zoom ----------------
+   Arm one of the three modes, then drag inside any 2-D panel.  A band or
+   rectangle previews the new window; releasing applies it.  Because the
+   panels share axes, zooming one narrows the others on the same axis.   */
+const ZBTN={v:"zV",h:"zH",box:"zB"};
+let ZOOM=null, ZDRAG=null;
+function armZoom(m){
+  ZOOM = (ZOOM===m) ? null : m;
+  for (const [k,id] of Object.entries(ZBTN)) $(id).classList.toggle("arm",ZOOM===k);
+  cv.style.cursor = ZOOM ? "crosshair" : "default";
+  status(ZOOM ? "Drag inside a panel to set the window" : "", ZOOM?"":"");
+}
+$("zV").addEventListener("click",()=>armZoom("v"));
+$("zH").addEventListener("click",()=>armZoom("h"));
+$("zB").addEventListener("click",()=>armZoom("box"));
+$("zO").addEventListener("click",()=>{
+  if (!S.values) return;
+  S.view=S.dims.map(d=>[0,d-1]);
+  S.epoch++; armZoom(null); draw();
+});
+function panelAt(x,y){
+  for (const p of PAN){
+    if (S.dims[p.h]<2||S.dims[p.v]<2) continue;
+    const r=L[p.key];
+    if (x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) return p;
+  }
+  return null;
+}
+function applyZoom(){
+  const {p,x0,y0,x1,y1,mode}=ZDRAG, r=L[p.key];
+  const setAx=(d,pa,pb,horiz)=>{
+    let a=horiz?ixOf(r,d,Math.min(pa,pb)):iyOf(r,d,Math.max(pa,pb));
+    let b=horiz?ixOf(r,d,Math.max(pa,pb)):iyOf(r,d,Math.min(pa,pb));
+    if (a>b){ const t=a; a=b; b=t; }
+    if (b-a<1) return;                       // ignore a stray click
+    S.view[d]=[a,b];
+    S.idx[d]=Math.max(a,Math.min(b,S.idx[d]));
+  };
+  if (mode==="h"||mode==="box") setAx(p.h,x0,x1,true);
+  if (mode==="v"||mode==="box") setAx(p.v,y0,y1,false);
+  S.epoch++;
+}
+function drawZoomOverlay(){
+  if (!ZDRAG) return;
+  const {p,x0,y0,x1,y1,mode}=ZDRAG, r=L[p.key];
+  let x=r.x,w=r.w,y=r.y,h=r.h;
+  if (mode==="h"||mode==="box"){ x=Math.min(x0,x1); w=Math.abs(x1-x0); }
+  if (mode==="v"||mode==="box"){ y=Math.min(y0,y1); h=Math.abs(y1-y0); }
+  ctx.save();
+  ctx.fillStyle="rgba(43,74,125,.16)";
+  ctx.fillRect(x,y,w,h);
+  ctx.setLineDash([6,4]); ctx.lineWidth=1.4; ctx.strokeStyle="#a82d27";
+  ctx.strokeRect(x+.5,y+.5,w,h);
+  ctx.restore();
 }
 
 /* ---------------- dragging the dashed lines ---------------- */
@@ -719,8 +829,8 @@ let HOT=null, DRAG=null;
 const NEAR=7;
 function hit(x,y){
   for (const p of PAN){
-    const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
-    if (nH<2||nV<2) continue;
+    const r=L[p.key], nH=vn(p.h), nV=vn(p.v);
+    if (S.dims[p.h]<2||S.dims[p.v]<2) continue;
     if (x>=r.x-NEAR&&x<=r.x+r.w+NEAR&&y>=r.y-NEAR&&y<=r.y+r.h+NEAR){
       const cx=pxOf(r,p.h,S.idx[p.h]), cy=pyOf(r,p.v,S.idx[p.v]);
       const dv=Math.abs(x-cx), dh=Math.abs(y-cy);
@@ -730,8 +840,8 @@ function hit(x,y){
     }
   }
   for (const s of STRIP){
-    const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
-    if (n<2) continue;
+    const r=L[s.key], pr=L[s.ref], n=vn(s.ax);
+    if (S.dims[s.ax]<2) continue;
     if (x<r.x-NEAR||x>r.x+r.w+NEAR||y<r.y-NEAR||y>r.y+r.h+NEAR) continue;
     if (s.dir==="h"){ if (Math.abs(x-pxOf(pr,s.ax,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"v"}; }
     else            { if (Math.abs(y-pyOf(pr,s.ax,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"h"}; }
@@ -755,6 +865,12 @@ const pos=ev=>{ const b=cv.getBoundingClientRect(); return [ev.clientX-b.left,ev
 cv.addEventListener("pointermove",ev=>{
   if (!S.values||!L) return;
   const [x,y]=pos(ev);
+  if (ZDRAG){
+    const r=L[ZDRAG.p.key];
+    ZDRAG.x1=Math.max(r.x,Math.min(r.x+r.w,x));
+    ZDRAG.y1=Math.max(r.y,Math.min(r.y+r.h,y));
+    draw(); return;
+  }
   if (DRAG){
     if (DRAG.cbar){
       const f=(S.vmax-S.vmin)/L.cbar.h, sh=(y-DRAG.y0)*f;
@@ -762,6 +878,7 @@ cv.addEventListener("pointermove",ev=>{
     } else applyDrag(DRAG,x,y);
     return;
   }
+  if (ZOOM){ cv.style.cursor="crosshair"; return; }
   const h=hit(x,y);
   const changed=JSON.stringify(h)!==JSON.stringify(HOT);
   HOT=h;
@@ -770,13 +887,24 @@ cv.addEventListener("pointermove",ev=>{
 });
 cv.addEventListener("pointerdown",ev=>{
   if (!S.values||!L) return;
-  const [x,y]=pos(ev), h=hit(x,y);
+  const [x,y]=pos(ev);
+  if (ZOOM){
+    const p=panelAt(x,y);
+    if (!p) return;
+    cv.setPointerCapture(ev.pointerId);
+    ZDRAG={p,x0:x,y0:y,x1:x,y1:y,mode:ZOOM};
+    return;
+  }
+  const h=hit(x,y);
   if (!h) return;
   cv.setPointerCapture(ev.pointerId);
   if (h.cbar) DRAG={cbar:true,y0:y,v0:S.vmin,v1:S.vmax};
   else { DRAG=h; applyDrag(h,x,y); }
 });
-const endDrag=ev=>{ DRAG=null; try{cv.releasePointerCapture(ev.pointerId);}catch(e){} };
+const endDrag=ev=>{
+  if (ZDRAG){ applyZoom(); ZDRAG=null; armZoom(null); draw(); }
+  DRAG=null; try{cv.releasePointerCapture(ev.pointerId);}catch(e){}
+};
 cv.addEventListener("pointerup",endDrag);
 cv.addEventListener("pointercancel",endDrag);
 cv.addEventListener("pointerleave",()=>{ if(!DRAG&&HOT){HOT=null;draw();} });
@@ -828,13 +956,7 @@ $("bAutoSlice").addEventListener("click",()=>{
     for (let i=0;i<nH;i++){ const v=S.values[rb+i*S.strides[p.h]]; if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;} } }
   setRange(lo,hi);
 });
-$("bAutoPct").addEventListener("click",()=>{
-  const N=S.values.length, st=Math.max(1,Math.floor(N/200000)), s=[];
-  for (let i=0;i<N;i+=st){const v=S.values[i]; if(v===v) s.push(v);}
-  if (s.length<4) return;
-  s.sort((a,b)=>a-b);
-  setRange(s[Math.floor(s.length*0.01)],s[Math.floor(s.length*0.99)]);
-});
+$("bAutoPct").addEventListener("click",()=>{ const p=percentile(0.01,0.99); if (p) setRange(p[0],p[1]); });
 
 /* ---------------- local files ---------------- */
 $("bLocal").addEventListener("click",()=>$("fileInput").click());
