@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Drive access preflight</title>
+<title>Explore 3D — Ilani group</title>
 <style>
   :root{
     --paper:#e9edf2;
@@ -11,697 +11,992 @@
     --ink:#16202e;
     --muted:#5d6b7d;
     --rule:#c5cedb;
-    --rule-faint:#dbe2ea;
+    --rule-faint:#dde3ea;
     --blueprint:#2b4a7d;
     --pass:#146b52;
     --fail:#a82d27;
     --warn:#96610a;
-    --skip:#7b8798;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0;height:100%}
   body{
-    font-family:var(--sans);
-    color:var(--ink);
+    font-family:var(--sans); color:var(--ink); line-height:1.45;
     background-color:var(--paper);
     background-image:
       linear-gradient(var(--rule-faint) 1px, transparent 1px),
       linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px);
     background-size:22px 22px;
-    line-height:1.5;
-    padding:28px 18px 80px;
+    padding:14px 14px 40px;
   }
-  .wrap{max-width:940px;margin:0 auto}
+  .wrap{max-width:1560px;margin:0 auto}
 
-  header{
-    border:1px solid var(--ink);
-    background:var(--surface);
-    padding:20px 22px;
-    margin-bottom:22px;
+  /* ---- bars ---- */
+  .bar{
+    background:var(--surface); border:1px solid var(--rule);
+    padding:10px 14px; margin-bottom:10px;
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
   }
+  .bar.title{border-color:var(--ink); padding:12px 16px}
   h1{
-    font-family:var(--mono);
-    font-size:19px;
-    font-weight:600;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    margin:0 0 6px;
+    font-family:var(--mono); font-size:15px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; margin:0;
   }
-  header p{margin:0;color:var(--muted);font-size:14px;max-width:62ch}
-  .origin{
-    margin-top:14px;
-    display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;
-    font-family:var(--mono);font-size:13px;
-  }
-  .origin b{font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-size:11px}
-  .origin code{background:var(--paper);border:1px solid var(--rule);padding:2px 7px;user-select:all}
+  .sub{font-size:12.5px;color:var(--muted);margin-left:4px}
+  .spacer{margin-left:auto}
 
-  section{
-    border:1px solid var(--rule);
-    background:var(--surface);
-    margin-bottom:18px;
+  .tag{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted);
   }
-  .head{
-    display:flex;align-items:baseline;gap:12px;
-    padding:12px 18px;border-bottom:1px solid var(--rule);
-    font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
-  }
-  .head .n{color:var(--blueprint);font-weight:700}
-  .head .t{font-weight:600}
-  .head .h{margin-left:auto;color:var(--muted);letter-spacing:.04em;text-transform:none;font-size:12px}
-  .body{padding:18px}
 
-  label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-  input[type=text]{
-    width:100%;font-family:var(--mono);font-size:13px;
-    padding:8px 10px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);
-  }
-  input[type=text]:focus{outline:2px solid var(--blueprint);outline-offset:-1px;background:#fff}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .field{margin-bottom:14px}
-  .hint{font-size:12.5px;color:var(--muted);margin:5px 0 0}
-  .hint code{font-family:var(--mono);background:var(--paper);padding:1px 4px;border:1px solid var(--rule-faint)}
-
-  .row-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);margin-top:4px}
-
-  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
   button{
-    font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
-    padding:9px 15px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+    padding:7px 13px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer;
   }
   button.ghost{background:transparent;color:var(--ink)}
-  button:disabled{opacity:.35;cursor:not-allowed}
+  button.mini{padding:4px 9px;font-size:10.5px}
+  button:disabled{opacity:.32;cursor:not-allowed}
   button:hover:not(:disabled){background:var(--blueprint);border-color:var(--blueprint);color:#fff}
   button:focus-visible{outline:2px solid var(--blueprint);outline-offset:2px}
 
-  /* checklist tape — the running record of what passed */
-  ol.tape{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:13px}
-  ol.tape li{
-    display:grid;grid-template-columns:34px 1fr 92px;gap:10px;align-items:baseline;
-    padding:8px 18px;border-bottom:1px solid var(--rule-faint);
+  select,input[type=text],input[type=number]{
+    font-family:var(--mono); font-size:12px; padding:5px 7px;
+    border:1px solid var(--rule); background:var(--paper); color:var(--ink);
   }
-  ol.tape li:last-child{border-bottom:0}
-  ol.tape .id{color:var(--blueprint);font-size:11px;letter-spacing:.06em}
-  ol.tape .nm{color:var(--ink)}
-  ol.tape .nm small{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);letter-spacing:0;text-transform:none}
+  select:focus,input:focus{outline:2px solid var(--blueprint);outline-offset:-1px;background:#fff}
+  input[type=number]{width:104px}
+  label.f{display:flex;align-items:center;gap:6px}
+  label.f > .tag{white-space:nowrap}
+
+  #status{font-size:12.5px;color:var(--muted)}
+  #status.err{color:var(--fail)}
+  #status.ok{color:var(--pass)}
+
+  /* ---- file chips ---- */
+  #files{display:flex;flex-wrap:wrap;gap:7px}
   .chip{
-    text-align:center;font-size:10.5px;letter-spacing:.12em;font-weight:600;
-    padding:2px 0;border:1px solid currentColor;
+    font-family:var(--mono); font-size:11.5px; padding:5px 10px;
+    border:1px solid var(--rule); background:var(--paper); cursor:pointer; color:var(--ink);
   }
-  .chip.wait{color:var(--skip);border-style:dashed}
-  .chip.run{color:var(--blueprint)}
-  .chip.pass{color:var(--pass);background:rgba(20,107,82,.07)}
-  .chip.fail{color:var(--fail);background:rgba(168,45,39,.07)}
-  .chip.warn{color:var(--warn);background:rgba(150,97,10,.07)}
-  .chip.skip{color:var(--skip)}
+  .chip:hover{border-color:var(--blueprint);color:var(--blueprint)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip .sz{color:var(--muted);margin-left:7px;font-size:10.5px}
+  .chip.on .sz{color:#9fb0c4}
 
-  pre.log{
-    margin:0;padding:16px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.65;
-    white-space:pre-wrap;word-break:break-word;max-height:440px;overflow:auto;
-    background:#fbfcfd;
+  /* ---- readout: the instrument strip ---- */
+  .readout{
+    background:var(--ink); color:#dbe6f2; border:1px solid var(--ink);
+    padding:11px 16px; margin-bottom:10px;
+    display:flex; flex-wrap:wrap; gap:26px; align-items:baseline;
+    font-family:var(--mono);
   }
-  .log .ok{color:var(--pass)}
-  .log .er{color:var(--fail)}
-  .log .wn{color:var(--warn)}
-  .log .dim{color:var(--muted)}
-  .log .hd{color:var(--blueprint);font-weight:700}
+  .readout .cell{display:flex;flex-direction:column;gap:1px}
+  .readout .k{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#7f93ab}
+  .readout .v{font-size:17px;font-variant-numeric:tabular-nums;color:#fff}
+  .readout .v.big{font-size:20px;color:#8fd3b6}
 
-  textarea{
-    width:100%;height:150px;font-family:var(--mono);font-size:12px;
-    border:1px solid var(--rule);background:var(--paper);padding:10px;color:var(--ink);
+  /* ---- sliders ---- */
+  .sliders{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:10px}
+  .sl{background:var(--surface);border:1px solid var(--rule);padding:8px 12px}
+  .sl .row{display:flex;align-items:baseline;gap:8px}
+  .sl .nm{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .sl .vl{font-family:var(--mono);font-size:12px;color:var(--blueprint);margin-left:auto;font-variant-numeric:tabular-nums}
+  .sl input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--blueprint)}
+
+  /* ---- panels ---- */
+  .panels,.cuts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+  .pan{background:var(--surface);border:1px solid var(--rule);padding:8px}
+  .pan h3{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    margin:0 0 6px;color:var(--muted);display:flex;gap:8px;align-items:baseline;
   }
-  .note{
-    font-size:13px;color:var(--muted);border-left:2px solid var(--blueprint);
-    padding-left:12px;margin:16px 0 0;
+  .pan h3 em{font-style:normal;color:var(--blueprint);margin-left:auto;text-transform:none;letter-spacing:.02em}
+  canvas{display:block;width:100%;touch-action:none}
+  .pan.img canvas{cursor:crosshair}
+  .hidden{display:none!important}
+
+  .empty{
+    background:var(--surface);border:1px dashed var(--rule);
+    padding:44px 24px;text-align:center;color:var(--muted);font-size:14px;
   }
-  @media (max-width:620px){
-    .grid2{grid-template-columns:1fr}
-    ol.tape li{grid-template-columns:28px 1fr 78px}
+  .empty b{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+
+  footer{font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center}
+  footer code{font-family:var(--mono)}
+
+  body.drag::after{
+    content:"Drop a .mat file";position:fixed;inset:0;background:rgba(43,74,125,.9);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:20px;letter-spacing:.14em;text-transform:uppercase;z-index:99;
   }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:1000px){
+    .panels,.cuts,.sliders{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header>
-  <h1>Drive access preflight</h1>
-  <p>Checks whether a browser page can sign a collaborator in, let them pick shared files or folders, and read the raw bytes back — before any viewer code exists. Nothing here renders data.</p>
-  <div class="origin">
-    <b>This page's origin</b>
-    <code id="origin">—</code>
-    <span class="hint" style="margin:0">Paste this into <em>Authorized JavaScript origins</em> on your OAuth client.</span>
+  <div class="bar title">
+    <h1>Explore 3D</h1>
+    <span class="sub">orthogonal slices &amp; linecuts through a data cube</span>
+    <span class="spacer"></span>
+    <span id="status">Loading HDF5 engine…</span>
   </div>
-</header>
 
-<section>
-  <div class="head"><span class="n">01</span><span class="t">Credentials</span><span class="h">from your Google Cloud project</span></div>
-  <div class="body">
-    <div class="grid2">
-      <div class="field">
-        <label for="clientId">OAuth client ID</label>
-        <input type="text" id="clientId" placeholder="1234567890-abc....apps.googleusercontent.com" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="field">
-        <label for="apiKey">API key (for the Picker)</label>
-        <input type="text" id="apiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
-      </div>
-      <div class="field">
-        <label for="appId">App ID (project number)</label>
-        <input type="text" id="appId" placeholder="1234567890" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="field">
-        <label for="scope">Scope requested</label>
-        <input type="text" id="scope" value="https://www.googleapis.com/auth/drive.file" spellcheck="false">
-        <p class="hint">Leave as <code>drive.file</code>. Swap in <code>drive.readonly</code> only to compare behaviour — it is a restricted scope and needs an annual paid audit in production.</p>
-      </div>
-    </div>
-    <div class="row-check">
-      <input type="checkbox" id="fullDl" checked>
-      <label for="fullDl" style="margin:0;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:13.5px;color:var(--muted)">Download whole files under 25&nbsp;MB to measure throughput</label>
-    </div>
-    <div class="btns" style="margin-top:14px">
-      <button class="ghost" id="btnSaveUrl">Save settings to URL</button>
-    </div>
-    <p class="note">Enable both the <strong>Google Drive API</strong> and the <strong>Google Picker API</strong> in the same Cloud project, and set the OAuth consent screen to <strong>External</strong> so collaborators outside your domain can sign in.</p>
+  <div class="bar">
+    <span class="tag">Source</span>
+    <button id="bConnect">Connect Drive</button>
+    <button id="bFolder" disabled>Open folder…</button>
+    <button id="bFiles" disabled>Open files…</button>
+    <button class="ghost" id="bLocal">Local file…</button>
+    <input type="file" id="fileInput" accept=".mat,.h5,.hdf5" class="hidden">
+    <span class="spacer"></span>
+    <button class="ghost mini hidden" id="bShare">Copy folder link</button>
   </div>
-</section>
 
-<section>
-  <div class="head"><span class="n">02</span><span class="t">Run</span><span class="h">in order — each step unlocks the next</span></div>
-  <div class="body">
-    <div class="btns">
-      <button id="btnEnv">Check environment</button>
-      <button id="btnAuth" disabled>Sign in and grant</button>
-      <button id="btnPickFiles" disabled>Pick files</button>
-      <button id="btnPickFolder" disabled>Pick a folder</button>
-      <button class="ghost" id="btnReset">Reset</button>
-    </div>
+  <div class="bar hidden" id="filesBar">
+    <span class="tag">Files</span>
+    <div id="files"></div>
   </div>
-</section>
 
-<section>
-  <div class="head"><span class="n">03</span><span class="t">Checklist</span><span class="h" id="tally">0 run</span></div>
-  <ol class="tape" id="tape"></ol>
-</section>
-
-<section>
-  <div class="head"><span class="n">04</span><span class="t">Transcript</span><span class="h">every request and response</span></div>
-  <pre class="log" id="log">Awaiting first check.</pre>
-</section>
-
-<section>
-  <div class="head"><span class="n">05</span><span class="t">Report</span><span class="h">paste this anywhere for help</span></div>
-  <div class="body">
-    <textarea id="report" readonly placeholder="Fills in as checks run."></textarea>
-    <div class="btns" style="margin-top:10px">
-      <button class="ghost" id="btnCopy">Copy report</button>
-    </div>
+  <div class="bar hidden" id="varBar">
+    <label class="f"><span class="tag">Data</span><select id="selData"></select></label>
+    <label class="f"><span class="tag">X</span><select id="selX"></select></label>
+    <label class="f"><span class="tag">Y</span><select id="selY"></select></label>
+    <label class="f"><span class="tag">Z</span><select id="selZ"></select></label>
+    <span class="spacer"></span>
+    <span class="tag" id="dimsTag"></span>
   </div>
-</section>
 
+  <div class="bar hidden" id="dispBar">
+    <label class="f"><span class="tag">Colormap</span>
+      <select id="selCmap">
+        <option value="viridis">viridis</option>
+        <option value="parula">parula</option>
+        <option value="inferno">inferno</option>
+        <option value="turbo">turbo</option>
+        <option value="jet">jet</option>
+        <option value="rdbu">red–white–blue</option>
+        <option value="gray">gray</option>
+      </select>
+    </label>
+    <label class="f"><span class="tag">Invert</span><input type="checkbox" id="cbInv"></label>
+    <label class="f"><span class="tag">Min</span><input type="number" id="inVmin" step="any"></label>
+    <label class="f"><span class="tag">Max</span><input type="number" id="inVmax" step="any"></label>
+    <button class="ghost mini" id="bAutoAll">Auto · volume</button>
+    <button class="ghost mini" id="bAutoSlice">Auto · slice</button>
+    <button class="ghost mini" id="bAutoPct">Auto · 1–99%</button>
+  </div>
+
+  <div class="readout hidden" id="readout">
+    <div class="cell"><span class="k" id="kX">x</span><span class="v" id="rX">—</span></div>
+    <div class="cell"><span class="k" id="kY">y</span><span class="v" id="rY">—</span></div>
+    <div class="cell"><span class="k" id="kZ">z</span><span class="v" id="rZ">—</span></div>
+    <div class="cell"><span class="k" id="kV">value</span><span class="v big" id="rV">—</span></div>
+    <div class="cell"><span class="k">index</span><span class="v" id="rI">—</span></div>
+  </div>
+
+  <div class="sliders hidden" id="sliders">
+    <div class="sl" id="slx"><div class="row"><span class="nm" id="slxN">x</span><span class="vl" id="slxV"></span></div><input type="range" id="slxR" min="0" max="0" value="0"></div>
+    <div class="sl" id="sly"><div class="row"><span class="nm" id="slyN">y</span><span class="vl" id="slyV"></span></div><input type="range" id="slyR" min="0" max="0" value="0"></div>
+    <div class="sl" id="slz"><div class="row"><span class="nm" id="slzN">z</span><span class="vl" id="slzV"></span></div><input type="range" id="slzR" min="0" max="0" value="0"></div>
+  </div>
+
+  <div class="panels hidden" id="panels">
+    <div class="pan img" id="pan-xy"><h3><span id="ttl-xy">X – Y</span><em id="fix-xy"></em></h3><canvas id="cv-xy"></canvas></div>
+    <div class="pan img" id="pan-zy"><h3><span id="ttl-zy">Z – Y</span><em id="fix-zy"></em></h3><canvas id="cv-zy"></canvas></div>
+    <div class="pan img" id="pan-xz"><h3><span id="ttl-xz">X – Z</span><em id="fix-xz"></em></h3><canvas id="cv-xz"></canvas></div>
+  </div>
+
+  <div class="cuts hidden" id="cuts">
+    <div class="pan" id="cut-x"><h3><span id="ttl-cx">cut along x</span></h3><canvas id="cv-cx"></canvas></div>
+    <div class="pan" id="cut-y"><h3><span id="ttl-cy">cut along y</span></h3><canvas id="cv-cy"></canvas></div>
+    <div class="pan" id="cut-z"><h3><span id="ttl-cz">cut along z</span></h3><canvas id="cv-cz"></canvas></div>
+  </div>
+
+  <div class="empty" id="empty">
+    <b>No data loaded</b>
+    Connect Drive and open a shared folder, or drop a <code>.mat</code> file anywhere on this page.<br>
+    MATLAB files must be saved with <code>-v7.3</code> so they are HDF5.
+  </div>
+
+  <footer>
+    Ilani group · slices are drawn by direct pixel writes, so dragging stays responsive on large cubes.
+  </footer>
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
-<script>
-(function(){
-"use strict";
+<script type="module">
+/* ============================================================
+   Configuration — Google Cloud project "Lab Data"
+   These values are public by design; they are constrained by the
+   authorised-origin and HTTP-referrer restrictions in the console.
+   ============================================================ */
+const CLIENT_ID = "498900799605-2uhlfk14fjr7dkfppv8qlhsuh1p9g80g.apps.googleusercontent.com";
+const API_KEY   = "AIzaSyDNh7rxTC3pNKR9Ye3xOsBJYwyBH7pKDh8";
+const APP_ID    = "498900799605";
+const SCOPE     = "https://www.googleapis.com/auth/drive.file";
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-/* ---------- checklist definition ---------- */
-var CHECKS = [
-  ["https",    "Secure origin",           "Google rejects file:// pages; https or localhost required"],
-  ["gis",      "Identity library loaded", "accounts.google.com/gsi/client reachable"],
-  ["picker",   "Picker library loaded",   "apis.google.com Picker module reachable"],
-  ["token",    "Access token issued",     "consent screen accepted, no verification wall"],
-  ["scopes",   "Only drive.file granted", "confirms no restricted scope is needed"],
-  ["narrow",   "Scope is genuinely narrow","a blind file listing should return nothing"],
-  ["picked",   "Picker returned a choice","the file or folder you shared is visible to them"],
-  ["meta",     "Metadata readable",       "files.get succeeded over CORS"],
-  ["shared",   "Shared drive item",       "driveId present, allDrives flags exercised"],
-  ["children", "Folder listing",          "files.list on the chosen folder"],
-  ["cascade",  "Folder grants its files", "can bytes be read from a file inside the folder?"],
-  ["range",    "Range requests honoured", "HTTP 206 — needed for chunked/Zarr reads"],
-  ["bytes",    "Full download",           "throughput over the wire"],
-  ["format",   "Format recognised",       "HDF5 / MAT / NPY / ZIP / JSON magic bytes"]
-];
+/* ============================================================
+   Small helpers
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const status = (msg, cls) => { const e = $("status"); e.textContent = msg; e.className = cls || ""; };
 
-var state = {};
-var tokenClient = null, token = null, grantedScopes = "", pickerReady = false;
-var logEl = document.getElementById("log");
-var reportLines = [];
-var logStarted = false;
-
-/* ---------- checklist rendering ---------- */
-var tape = document.getElementById("tape");
-CHECKS.forEach(function(c, i){
-  var li = document.createElement("li");
-  li.innerHTML = '<span class="id">' + String(i+1).padStart(2,"0") + '</span>' +
-                 '<span class="nm">' + c[1] + '<small>' + c[2] + '</small></span>' +
-                 '<span class="chip wait" id="chip-' + c[0] + '">pending</span>';
-  tape.appendChild(li);
-  state[c[0]] = "wait";
-});
-
-function mark(key, status, extra){
-  var el = document.getElementById("chip-" + key);
-  if(!el) return;
-  el.className = "chip " + status;
-  el.textContent = extra || status;
-  state[key] = status;
-  var run = Object.keys(state).filter(function(k){ return state[k] !== "wait"; }).length;
-  document.getElementById("tally").textContent = run + " of " + CHECKS.length + " run";
-  buildReport();
+function fmt(v){
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const a = Math.abs(v);
+  if (a === 0) return "0";
+  if (a >= 1e5 || a < 1e-3) return v.toExponential(3);
+  return String(+v.toPrecision(5));
 }
-
-/* ---------- logging ---------- */
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function log(msg, cls){
-  if(!logStarted){ logEl.textContent = ""; logStarted = true; }
-  var span = document.createElement("span");
-  if(cls) span.className = cls;
-  span.innerHTML = esc(msg) + "\n";
-  logEl.appendChild(span);
-  logEl.scrollTop = logEl.scrollHeight;
-  reportLines.push(msg);
-  buildReport();
+function fmtShort(v){
+  if (!isFinite(v)) return "—";
+  const a = Math.abs(v);
+  if (a === 0) return "0";
+  if (a >= 1e4 || a < 1e-2) return v.toExponential(1);
+  return String(+v.toPrecision(3));
 }
-function head(msg){ log("\n── " + msg + " ──", "hd"); }
-function ok(msg){ log("  ✓ " + msg, "ok"); }
-function bad(msg){ log("  ✗ " + msg, "er"); }
-function warn(msg){ log("  ! " + msg, "wn"); }
-function dim(msg){ log("    " + msg, "dim"); }
-
-function buildReport(){
-  var lines = ["DRIVE ACCESS PREFLIGHT — " + new Date().toISOString(),
-               "origin: " + location.origin, ""];
-  CHECKS.forEach(function(c){
-    lines.push(state[c[0]].toUpperCase().padEnd(6) + "  " + c[1]);
-  });
-  lines.push("", "TRANSCRIPT");
-  document.getElementById("report").value = lines.concat(reportLines).join("\n");
-}
-
-/* ---------- config ---------- */
-function cfg(){
-  return {
-    clientId: document.getElementById("clientId").value.trim(),
-    apiKey:   document.getElementById("apiKey").value.trim(),
-    appId:    document.getElementById("appId").value.trim(),
-    scope:    document.getElementById("scope").value.trim()
-  };
-}
-(function loadFromHash(){
-  if(!location.hash) return;
-  var p = new URLSearchParams(location.hash.slice(1));
-  ["clientId","apiKey","appId","scope"].forEach(function(k){
-    if(p.get(k)) document.getElementById(k).value = p.get(k);
-  });
-})();
-document.getElementById("btnSaveUrl").onclick = function(){
-  var c = cfg();
-  location.hash = new URLSearchParams(c).toString();
-  log("Settings written to the URL. Bookmark it to skip retyping.", "dim");
-};
-
-/* ---------- 1. environment ---------- */
-document.getElementById("origin").textContent = location.origin || "(no origin — opened as a local file)";
-
-document.getElementById("btnEnv").onclick = function(){
-  head("Environment");
-  var secure = location.protocol === "https:" ||
-               location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  if(secure){ ok("Origin is " + location.origin); mark("https","pass"); }
-  else{
-    bad("Origin is " + (location.protocol || "file:") + " — Google will refuse this page.");
-    dim("Serve it over https, or run: python -m http.server 8000");
-    mark("https","fail");
-  }
-
-  if(window.google && google.accounts && google.accounts.oauth2){
-    ok("Identity Services loaded"); mark("gis","pass");
-  }else{
-    bad("Identity Services not loaded — blocked or offline?"); mark("gis","fail");
-  }
-
-  if(window.gapi){
-    gapi.load("picker", function(){
-      pickerReady = true;
-      ok("Picker module loaded"); mark("picker","pass");
-    });
-  }else{
-    bad("apis.google.com did not load"); mark("picker","fail");
-  }
-
-  var c = cfg();
-  if(!c.clientId) warn("No client ID entered — sign-in will fail.");
-  if(!c.apiKey)  warn("No API key entered — the Picker usually refuses to open without one.");
-  if(!c.appId)   warn("No app ID entered — shared-drive files may not appear in the Picker.");
-  dim("Requesting scope: " + c.scope);
-  document.getElementById("btnAuth").disabled = !secure;
-};
-
-/* ---------- 2. auth ---------- */
-document.getElementById("btnAuth").onclick = function(){
-  var c = cfg();
-  head("Authorisation");
-  if(!c.clientId){ bad("Enter an OAuth client ID first."); return; }
-  try{
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: c.clientId,
-      scope: c.scope,
-      callback: function(resp){
-        if(resp.error){
-          bad("Token request failed: " + resp.error);
-          mark("token","fail"); return;
-        }
-        token = resp.access_token;
-        grantedScopes = resp.scope || "";
-        ok("Token issued, valid for " + (resp.expires_in || "?") + " s");
-        mark("token","pass");
-        dim("granted: " + grantedScopes);
-
-        var wanted = c.scope.split(/\s+/);
-        var got = grantedScopes.split(/\s+/);
-        var missing = wanted.filter(function(s){ return got.indexOf(s) === -1; });
-        var restricted = got.filter(function(s){
-          return /drive\.readonly$|auth\/drive$|drive\.metadata$/.test(s);
-        });
-        if(missing.length){ bad("Not granted: " + missing.join(", ")); mark("scopes","fail"); }
-        else if(restricted.length){
-          warn("Restricted scope in use: " + restricted.join(", "));
-          dim("Fine for testing; in production this triggers an annual paid security assessment.");
-          mark("scopes","warn","restrictd");
-        }else{
-          ok("Non-sensitive scope only — no verification wall, no audit.");
-          mark("scopes","pass");
-        }
-
-        document.getElementById("btnPickFiles").disabled = false;
-        document.getElementById("btnPickFolder").disabled = false;
-        narrownessProbe();
-      },
-      error_callback: function(err){
-        bad("Sign-in aborted: " + (err && err.type ? err.type : "unknown"));
-        dim("A popup blocker or a mismatched Authorized JavaScript origin is the usual cause.");
-        mark("token","fail");
-      }
-    });
-    tokenClient.requestAccessToken({ prompt: "consent" });
-  }catch(e){
-    bad("Could not start sign-in: " + e.message);
-    mark("token","fail");
-  }
-};
-
-/* ---------- 3. is the scope actually narrow? ---------- */
-function narrownessProbe(){
-  head("Scope narrowness");
-  dim("Listing files blindly — with drive.file this should come back empty.");
-  api("/drive/v3/files?pageSize=10&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true")
-    .then(function(r){
-      var n = (r.files || []).length;
-      if(n === 0){
-        ok("0 files visible without an explicit pick — access is per-file, as intended.");
-        mark("narrow","pass");
-      }else{
-        warn(n + " files visible without picking anything.");
-        dim("That means a broad scope is in play. Check the scope field.");
-        mark("narrow","warn","broad");
-      }
-    })
-    .catch(function(e){
-      warn("Listing refused: " + e.message);
-      dim("A refusal here is also a healthy sign for drive.file.");
-      mark("narrow","pass");
-    });
-}
-
-/* ---------- Drive API helper ---------- */
-function api(path){
-  return fetch("https://www.googleapis.com" + path, {
-    headers: { Authorization: "Bearer " + token }
-  }).then(function(res){
-    return res.text().then(function(t){
-      var j = null;
-      try{ j = JSON.parse(t); }catch(e){}
-      if(!res.ok){
-        var m = (j && j.error && j.error.message) || (res.status + " " + res.statusText);
-        throw new Error(m);
-      }
-      return j;
-    });
-  });
-}
-
-/* ---------- 4. picker ---------- */
-function openPicker(foldersSelectable){
-  var c = cfg();
-  head(foldersSelectable ? "Picker — folder mode" : "Picker — file mode");
-  if(!pickerReady){ bad("Picker module is not loaded yet. Run the environment check."); return; }
-
-  function view(label, tweak){
-    var v = new google.picker.DocsView(google.picker.ViewId.DOCS)
-      .setIncludeFolders(true)
-      .setSelectFolderEnabled(foldersSelectable)
-      .setMode(google.picker.DocsViewMode.LIST)
-      .setLabel(label);
-    tweak(v);
-    return v;
-  }
-
-  var b = new google.picker.PickerBuilder()
-    .setOAuthToken(token)
-    .addView(view("My Drive", function(v){ v.setOwnedByMe(true); }))
-    .addView(view("Shared with me", function(v){ v.setOwnedByMe(false); }))
-    .addView(view("Shared drives", function(v){ v.setEnableDrives(true); }))
-    .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-    .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
-    .setCallback(onPicked);
-
-  if(c.apiKey) b.setDeveloperKey(c.apiKey);
-  if(c.appId)  b.setAppId(c.appId);
-  if(location.origin) b.setOrigin(location.origin);
-
-  dim("Open the tab that matches how the data was shared with you.");
-  b.build().setVisible(true);
-}
-document.getElementById("btnPickFiles").onclick  = function(){ openPicker(false); };
-document.getElementById("btnPickFolder").onclick = function(){ openPicker(true); };
-
-function onPicked(data){
-  if(data.action === google.picker.Action.CANCEL){ dim("Picker closed without a choice."); return; }
-  if(data.action !== google.picker.Action.PICKED) return;
-  var docs = data.docs || [];
-  ok("Picked " + docs.length + " item" + (docs.length === 1 ? "" : "s"));
-  mark("picked","pass");
-  docs.forEach(function(d){ dim(d.name + "  [" + d.mimeType + "]  id=" + d.id); });
-  var chain = Promise.resolve();
-  docs.forEach(function(d){ chain = chain.then(function(){ return inspect(d); }); });
-}
-
-/* ---------- 5. inspect one picked item ---------- */
-var FOLDER_MIME = "application/vnd.google-apps.folder";
-
-function inspect(doc){
-  head("Item: " + doc.name);
-  var fields = "id,name,mimeType,size,driveId,shared,ownedByMe,modifiedTime,capabilities(canDownload)";
-  return api("/drive/v3/files/" + doc.id + "?supportsAllDrives=true&fields=" + encodeURIComponent(fields))
-    .then(function(m){
-      ok("Metadata read over CORS");
-      mark("meta","pass");
-      dim("mimeType   " + m.mimeType);
-      if(m.size) dim("size       " + fmtBytes(+m.size));
-      dim("shared     " + (m.shared ? "yes" : "no") + "   ownedByMe " + (m.ownedByMe ? "yes" : "no"));
-      if(m.capabilities && m.capabilities.canDownload === false)
-        warn("canDownload is false — the owner has disabled downloading.");
-
-      if(m.driveId){
-        ok("Lives in a shared drive (driveId " + m.driveId + ")");
-        dim("supportsAllDrives / includeItemsFromAllDrives are mandatory for this item.");
-        mark("shared","pass");
-      }else{
-        dim("Not in a shared drive — this is a My Drive item.");
-        if(state.shared === "wait") mark("shared","skip","n/a");
-      }
-
-      if(m.mimeType === FOLDER_MIME) return folderTests(m);
-      return fileTests(m);
-    })
-    .catch(function(e){
-      bad("Metadata refused: " + e.message);
-      mark("meta","fail");
-    });
-}
-
-/* ---------- folder: does picking it grant its contents? ---------- */
-function folderTests(m){
-  head("Folder cascade test — " + m.name);
-  dim("The open question: does picking a folder under drive.file reach the files inside?");
-  var q = encodeURIComponent("'" + m.id + "' in parents and trashed=false");
-  var url = "/drive/v3/files?q=" + q +
-            "&fields=files(id,name,mimeType,size,driveId)&pageSize=50" +
-            "&supportsAllDrives=true&includeItemsFromAllDrives=true";
-  return api(url).then(function(r){
-    var kids = r.files || [];
-    if(!kids.length){
-      warn("Listing succeeded but returned 0 children.");
-      dim("Either the folder is empty, or folder selection does not cascade. Try a folder you know has files.");
-      mark("children","warn","empty");
-      mark("cascade","fail");
-      return;
-    }
-    ok("Listed " + kids.length + " child item" + (kids.length === 1 ? "" : "s"));
-    mark("children","pass");
-    kids.slice(0,8).forEach(function(k){
-      dim("• " + k.name + (k.size ? "  " + fmtBytes(+k.size) : "") + "  [" + k.mimeType + "]");
-    });
-
-    var target = kids.filter(function(k){ return k.mimeType !== FOLDER_MIME; })[0];
-    if(!target){
-      warn("Only subfolders inside — cannot test byte access here.");
-      mark("cascade","warn","subdirs");
-      return;
-    }
-    dim("Attempting a 1 KB read from '" + target.name + "' — the decisive test.");
-    return rangeRead(target.id, 0, 1023).then(function(res){
-      if(res.status === 206 || res.status === 200){
-        ok("Bytes readable from inside the folder. Folder selection DOES cascade.");
-        dim("You can let collaborators pick one folder and browse everything in it.");
-        mark("cascade","pass");
-        sniff(res.buf, target.name);
-        if(res.status === 206){ ok("Server answered 206 Partial Content"); mark("range","pass"); }
-      }
-    }).catch(function(e){
-      bad("Byte read refused: " + e.message);
-      dim("Folder selection does NOT cascade. Have collaborators multi-select files instead.");
-      mark("cascade","fail");
-    });
-  }).catch(function(e){
-    bad("Folder listing refused: " + e.message);
-    mark("children","fail");
-    mark("cascade","fail");
-  });
-}
-
-/* ---------- file: range, throughput, format ---------- */
-function fileTests(m){
-  var size = m.size ? +m.size : null;
-  if(state.cascade === "wait") mark("cascade","skip","n/a");
-
-  head("Byte access — " + m.name);
-  return rangeRead(m.id, 0, 1023).then(function(res){
-    if(res.status === 206){
-      ok("206 Partial Content — range requests work.");
-      dim("Chunked formats such as Zarr will stream properly.");
-      mark("range","pass");
-    }else{
-      warn("Status " + res.status + " for a range request; got " + res.buf.byteLength + " bytes.");
-      dim("Whole-file loading only.");
-      mark("range","warn","ignored");
-    }
-    sniff(res.buf, m.name);
-
-    var doFull = document.getElementById("fullDl").checked;
-    if(!doFull){ mark("bytes","skip","off"); return; }
-    if(size && size > 25*1024*1024){
-      warn("Skipping full download — " + fmtBytes(size) + " is over the 25 MB guard.");
-      mark("bytes","skip","large");
-      return;
-    }
-    dim("Downloading the whole file…");
-    var t0 = performance.now();
-    return fetch("https://www.googleapis.com/drive/v3/files/" + m.id + "?alt=media&supportsAllDrives=true", {
-      headers: { Authorization: "Bearer " + token }
-    }).then(function(r){
-      if(!r.ok) throw new Error(r.status + " " + r.statusText);
-      return r.arrayBuffer();
-    }).then(function(buf){
-      var dt = (performance.now() - t0)/1000;
-      ok("Received " + fmtBytes(buf.byteLength) + " in " + dt.toFixed(2) + " s  ≈ " +
-         (buf.byteLength/1048576/dt).toFixed(1) + " MB/s");
-      mark("bytes","pass");
-    });
-  }).catch(function(e){
-    bad("Byte read failed: " + e.message);
-    mark("range","fail");
-    mark("bytes","fail");
-  });
-}
-
-function rangeRead(id, from, to){
-  return fetch("https://www.googleapis.com/drive/v3/files/" + id + "?alt=media&supportsAllDrives=true", {
-    headers: { Authorization: "Bearer " + token, Range: "bytes=" + from + "-" + to }
-  }).then(function(r){
-    if(!r.ok && r.status !== 206) throw new Error(r.status + " " + r.statusText);
-    return r.arrayBuffer().then(function(buf){ return { status: r.status, buf: buf }; });
-  });
-}
-
-/* ---------- format sniffing ---------- */
-function sniff(buf, name){
-  var b = new Uint8Array(buf);
-  if(b.length < 8){ warn("Too few bytes to identify."); mark("format","warn","short"); return; }
-  var ascii = "";
-  for(var i=0;i<Math.min(b.length,24);i++) ascii += String.fromCharCode(b[i]);
-  var verdict = null;
-
-  if(b[0]===0x89 && b[1]===0x48 && b[2]===0x44 && b[3]===0x46)
-    verdict = "HDF5 — a MATLAB v7.3 .mat file, readable in-browser with h5wasm";
-  else if(ascii.indexOf("MATLAB 5.0 MAT-file") === 0)
-    verdict = "MAT v5 — NOT HDF5. Re-save with -v7.3 for browser reading";
-  else if(b[0]===0x93 && ascii.substr(1,5)==="NUMPY")
-    verdict = "NumPy .npy";
-  else if(b[0]===0x50 && b[1]===0x4B)
-    verdict = "ZIP container (.npz, .zip, or an Office file)";
-  else if(ascii.trim()[0]==="{" || ascii.trim()[0]==="[")
-    verdict = "JSON — possibly Zarr metadata";
-
-  if(verdict){ ok(verdict); mark("format","pass"); }
-  else{
-    dim("Unrecognised header: " + Array.prototype.slice.call(b,0,8)
-        .map(function(x){ return x.toString(16).padStart(2,"0"); }).join(" "));
-    mark("format","warn","unknown");
-  }
-}
-
 function fmtBytes(n){
-  if(n < 1024) return n + " B";
-  if(n < 1048576) return (n/1024).toFixed(1) + " KB";
-  if(n < 1073741824) return (n/1048576).toFixed(1) + " MB";
+  if (n < 1024) return n + " B";
+  if (n < 1048576) return (n/1024).toFixed(0) + " KB";
+  if (n < 1073741824) return (n/1048576).toFixed(1) + " MB";
   return (n/1073741824).toFixed(2) + " GB";
 }
 
-/* ---------- reset & copy ---------- */
-document.getElementById("btnReset").onclick = function(){
-  CHECKS.forEach(function(c){
-    var el = document.getElementById("chip-" + c[0]);
-    el.className = "chip wait"; el.textContent = "pending";
-    state[c[0]] = "wait";
-  });
-  token = null; grantedScopes = ""; reportLines = []; logStarted = false;
-  logEl.textContent = "Awaiting first check.";
-  document.getElementById("btnAuth").disabled = true;
-  document.getElementById("btnPickFiles").disabled = true;
-  document.getElementById("btnPickFolder").disabled = true;
-  document.getElementById("tally").textContent = "0 run";
-  buildReport();
+/* ============================================================
+   Colormaps — anchor colours, linearly interpolated into a LUT
+   ============================================================ */
+const ANCHORS = {
+  viridis: [[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]],
+  parula:  [[53,42,135],[15,92,221],[18,125,216],[7,156,207],[21,177,180],[89,189,140],[165,190,107],[225,185,82],[252,206,46],[249,251,14]],
+  inferno: [[0,0,4],[22,11,57],[66,10,104],[106,23,110],[147,38,103],[188,55,84],[221,81,58],[243,120,25],[252,165,10],[252,255,164]],
+  turbo:   [[48,18,59],[70,107,227],[54,166,249],[26,217,199],[106,242,124],[184,242,50],[249,168,37],[251,109,20],[206,42,4],[122,4,3]],
+  jet:     [[0,0,143],[0,0,255],[0,127,255],[0,255,255],[127,255,127],[255,255,0],[255,127,0],[255,0,0],[180,0,0],[128,0,0]],
+  rdbu:    [[33,51,140],[70,100,180],[120,160,215],[190,215,235],[240,245,248],[250,225,210],[240,160,130],[215,95,70],[178,30,35],[120,0,20]],
+  gray:    [[0,0,0],[255,255,255]]
 };
-document.getElementById("btnCopy").onclick = function(){
-  var ta = document.getElementById("report");
-  ta.select();
-  try{
-    navigator.clipboard.writeText(ta.value);
-    log("Report copied.", "dim");
-  }catch(e){
-    log("Clipboard blocked — the text is selected, press Ctrl/Cmd+C.", "wn");
+const LUT = {};
+for (const [name, pts] of Object.entries(ANCHORS)){
+  const lut = new Uint8Array(256*3);
+  for (let i=0;i<256;i++){
+    const t = i/255*(pts.length-1);
+    const a = Math.min(pts.length-2, Math.floor(t));
+    const f = t-a, p = pts[a], q = pts[a+1];
+    lut[i*3]   = p[0]+(q[0]-p[0])*f;
+    lut[i*3+1] = p[1]+(q[1]-p[1])*f;
+    lut[i*3+2] = p[2]+(q[2]-p[2])*f;
   }
+  LUT[name] = lut;
+}
+function activeLUT(){
+  const base = LUT[S.cmap] || LUT.viridis;
+  if (!S.invert) return base;
+  if (!S._inv || S._invName !== S.cmap){
+    const out = new Uint8Array(768);
+    for (let i=0;i<256;i++){ const j=255-i; out[i*3]=base[j*3]; out[i*3+1]=base[j*3+1]; out[i*3+2]=base[j*3+2]; }
+    S._inv = out; S._invName = S.cmap;
+  }
+  return S._inv;
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+const S = {
+  h5: null, file: null, fileName: "",
+  candidates: [], vectors: [],
+  dims: [1,1,1], strides: [1,1,1],
+  values: null, names: ["x","y","z"], dataName: "",
+  axes: [null,null,null],          // axis vectors or null (index axis)
+  idx: [0,0,0],
+  vmin: 0, vmax: 1,
+  cmap: "viridis", invert: false,
+  token: null, pickerReady: false, folderId: null
 };
 
-buildReport();
+/* ============================================================
+   HDF5 engine
+   ============================================================ */
+async function loadH5(){
+  const urls = [
+    "https://cdn.jsdelivr.net/npm/h5wasm@0.7/dist/esm/hdf5_hl.js",
+    "https://unpkg.com/h5wasm@0.7/dist/esm/hdf5_hl.js"
+  ];
+  let last;
+  for (const u of urls){
+    try{
+      const mod = await import(/* @vite-ignore */ u);
+      const h = mod.default || mod;
+      await h.ready;
+      return h;
+    }catch(e){ last = e; console.warn("h5wasm load failed from", u, e); }
+  }
+  throw last || new Error("h5wasm unavailable");
+}
+
+function isDataset(o){ return o && typeof o === "object" && "shape" in o && "dtype" in o; }
+function isGroup(o){ return o && typeof o === "object" && typeof o.keys === "function" && !isDataset(o); }
+
+/* Walk the file and classify every numeric dataset.
+   MATLAB writes HDF5 dimensions reversed, so a (nx,ny,nz) array
+   arrives with shape [nz,ny,nx]; reversing recovers MATLAB order,
+   and the flat buffer is already column-major for that order. */
+function scan(node, path, out){
+  let keys;
+  try{ keys = node.keys(); }catch(e){ return; }
+  for (const k of keys){
+    if (k === "#refs#" || k === "#subsystem#") continue;
+    const p = path ? path + "/" + k : k;
+    let o;
+    try{ o = node.get(k); }catch(e){ continue; }
+    if (isGroup(o)) scan(o, p, out);
+    else if (isDataset(o)){
+      const shape = Array.from(o.shape || []);
+      const dims = shape.slice().reverse();
+      const eff = dims.filter(d => d > 1);
+      const n = dims.reduce((a,b)=>a*b, 1);
+      if (!n) continue;
+      out.push({ path: p, node: o, dims, eff, count: n, dtype: String(o.dtype) });
+    }
+  }
+}
+
+function readFlat(entry){
+  let v;
+  try{ v = entry.node.value; }
+  catch(e){ throw new Error("cannot read " + entry.path + " (" + e.message + ")"); }
+  if (ArrayBuffer.isView(v)) return v;
+  if (Array.isArray(v)){
+    const flat = [];
+    (function rec(a){ for (const x of a){ Array.isArray(x) ? rec(x) : flat.push(typeof x === "number" ? x : NaN); } })(v);
+    return Float64Array.from(flat);
+  }
+  throw new Error(entry.path + " is not numeric (complex or cell data is not supported yet)");
+}
+
+/* ============================================================
+   Opening a file
+   ============================================================ */
+async function openBuffer(buf, name){
+  status("Parsing " + name + " …");
+  await new Promise(r => setTimeout(r, 10));
+  try{
+    if (S.file){ try{ S.file.close(); }catch(e){} S.file = null; }
+    const tmp = "/work_" + Date.now() + ".h5";
+    S.h5.FS.writeFile(tmp, new Uint8Array(buf));
+    S.file = new S.h5.File(tmp, "r");
+    S.fileName = name;
+
+    const all = [];
+    scan(S.file, "", all);
+    if (!all.length) throw new Error("no datasets found — is this really a -v7.3 file?");
+
+    S.candidates = all.filter(e => e.eff.length >= 2).sort((a,b)=>b.count-a.count);
+    S.vectors    = all.filter(e => e.eff.length === 1 && e.count > 1).sort((a,b)=>a.path.localeCompare(b.path));
+
+    if (!S.candidates.length){
+      throw new Error("no 2-D or 3-D arrays in this file — found only " + all.length + " scalar/vector entries");
+    }
+    fillSelect($("selData"), S.candidates.map(e => ({
+      v: e.path, t: e.path + "  [" + e.eff.join(" × ") + "]"
+    })));
+    $("varBar").classList.remove("hidden");
+    $("dispBar").classList.remove("hidden");
+    selectData(S.candidates[0].path);
+    status("Loaded " + name, "ok");
+  }catch(e){
+    console.error(e);
+    status(e.message, "err");
+  }
+}
+
+function fillSelect(sel, items, extra){
+  sel.innerHTML = "";
+  if (extra) { const o = document.createElement("option"); o.value=""; o.textContent = extra; sel.appendChild(o); }
+  for (const it of items){
+    const o = document.createElement("option");
+    o.value = it.v; o.textContent = it.t;
+    sel.appendChild(o);
+  }
+}
+
+function selectData(path){
+  const e = S.candidates.find(c => c.path === path);
+  if (!e) return;
+  let values;
+  try{ values = readFlat(e); }
+  catch(err){ status(err.message, "err"); return; }
+
+  // collapse singleton dimensions, keep at most three
+  const dims = [], map = [];
+  e.dims.forEach((d,i)=>{ if (d>1){ dims.push(d); map.push(i); } });
+  while (dims.length < 3) dims.push(1);
+  if (dims.length > 3){
+    status("array has " + dims.length + " non-singleton dimensions; showing the first three", "err");
+    dims.length = 3;
+  }
+
+  S.values = values;
+  S.dims = dims;
+  S.strides = [1, dims[0], dims[0]*dims[1]];
+  S.dataName = e.path;
+  S.idx = dims.map(d => Math.floor(d/2));
+
+  // range over the whole volume, ignoring NaN
+  let lo = Infinity, hi = -Infinity;
+  for (let i=0;i<values.length;i++){ const v = values[i]; if (v===v){ if (v<lo) lo=v; if (v>hi) hi=v; } }
+  if (!isFinite(lo)){ lo = 0; hi = 1; }
+  S.fullMin = lo; S.fullMax = hi;
+  S.vmin = lo; S.vmax = hi;
+  $("inVmin").value = +lo.toPrecision(6);
+  $("inVmax").value = +hi.toPrecision(6);
+
+  guessAxes();
+  $("dimsTag").textContent = dims.join(" × ") + "   ·   " + fmt(lo) + " … " + fmt(hi);
+  showAll();
+  redrawAll();
+}
+
+/* Match 1-D vectors to dimensions by length. */
+function guessAxes(){
+  const opts = S.vectors.map(v => ({ v: v.path, t: v.path + " [" + v.count + "]" }));
+  ["selX","selY","selZ"].forEach((id,d)=>{
+    fillSelect($(id), opts, "index 1…" + S.dims[d]);
+    const match = S.vectors.find(v => v.count === S.dims[d]);
+    $(id).value = (match && S.dims[d] > 1) ? match.path : "";
+    applyAxis(d);
+  });
+}
+
+function applyAxis(d){
+  const sel = $(["selX","selY","selZ"][d]).value;
+  if (!sel){ S.axes[d] = null; S.names[d] = ["x","y","z"][d]; return; }
+  const e = S.vectors.find(v => v.path === sel);
+  if (!e || e.count !== S.dims[d]){ S.axes[d] = null; S.names[d] = ["x","y","z"][d]; return; }
+  try{
+    S.axes[d] = readFlat(e);
+    S.names[d] = e.path.split("/").pop();
+  }catch(err){ S.axes[d] = null; }
+}
+
+/* ============================================================
+   Axis geometry.  imagesc centres pixels on the axis values, so
+   the drawn extent runs half a step beyond each end.
+   ============================================================ */
+function axisExtent(d){
+  const n = S.dims[d], v = S.axes[d];
+  if (!v || n < 2 || v.length !== n) return [-0.5, n-0.5];
+  const a = v[0], b = v[n-1], step = (b-a)/(n-1);
+  return [a - step/2, b + step/2];
+}
+function axisValue(d, i){
+  const v = S.axes[d];
+  return (v && v.length === S.dims[d]) ? v[i] : i+1;
+}
+function axisLabel(d){ return S.names[d]; }
+
+function niceTicks(lo, hi, target){
+  if (!isFinite(lo) || !isFinite(hi) || lo === hi) return [lo];
+  const span = Math.abs(hi-lo);
+  const mag = Math.pow(10, Math.floor(Math.log10(span/target)));
+  const norm = (span/target)/mag;
+  const step = (norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
+  const a = Math.min(lo,hi), b = Math.max(lo,hi);
+  const out = [];
+  for (let v = Math.ceil(a/step)*step; v <= b + step*1e-9; v += step) out.push(+v.toPrecision(12));
+  return out;
+}
+
+/* ============================================================
+   Canvas plumbing
+   ============================================================ */
+const PANELS = [
+  { key:"xy", h:0, v:1, fix:2 },
+  { key:"zy", h:2, v:1, fix:0 },
+  { key:"xz", h:0, v:2, fix:1 }
+];
+const CUTS = [ {key:"cx", ax:0}, {key:"cy", ax:1}, {key:"cz", ax:2} ];
+const M = { l:56, r:12, t:10, b:34 };
+
+function sizeCanvas(cv, cssH){
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 300;
+  const h = cssH;
+  if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+    cv.style.height = h + "px";
+  }
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { ctx, w, h };
+}
+
+function frame(ctx, w, h, xlab, ylab){
+  ctx.clearRect(0,0,w,h);
+  const px = M.l, py = M.t, pw = w-M.l-M.r, ph = h-M.t-M.b;
+  ctx.strokeStyle = "#16202e"; ctx.lineWidth = 1;
+  ctx.strokeRect(px+.5, py+.5, pw-1, ph-1);
+  ctx.fillStyle = "#5d6b7d";
+  ctx.font = "10px ui-monospace, Menlo, Consolas, monospace";
+  if (xlab){ ctx.textAlign="center"; ctx.fillText(xlab, px+pw/2, h-4); }
+  if (ylab){ ctx.save(); ctx.translate(11, py+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign="center"; ctx.fillText(ylab, 0, 0); ctx.restore(); }
+  return { px, py, pw, ph };
+}
+
+function drawTicks(ctx, r, xlo, xhi, ylo, yhi){
+  ctx.fillStyle = "#5d6b7d"; ctx.strokeStyle = "#c5cedb";
+  ctx.font = "9.5px ui-monospace, Menlo, Consolas, monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const t of niceTicks(xlo, xhi, 4)){
+    const x = r.px + (t-xlo)/(xhi-xlo)*r.pw;
+    if (x < r.px-1 || x > r.px+r.pw+1) continue;
+    ctx.beginPath(); ctx.moveTo(x, r.py+r.ph); ctx.lineTo(x, r.py+r.ph+4); ctx.stroke();
+    ctx.fillText(fmtShort(t), x, r.py+r.ph+6);
+  }
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (const t of niceTicks(ylo, yhi, 4)){
+    const y = r.py + r.ph - (t-ylo)/(yhi-ylo)*r.ph;
+    if (y < r.py-1 || y > r.py+r.ph+1) continue;
+    ctx.beginPath(); ctx.moveTo(r.px-4, y); ctx.lineTo(r.px, y); ctx.stroke();
+    ctx.fillText(fmtShort(t), r.px-6, y);
+  }
+}
+
+/* ---- image panels ---- */
+const off = {};
+function drawPanel(p){
+  const cv = $("cv-" + p.key);
+  const nH = S.dims[p.h], nV = S.dims[p.v];
+  const { ctx, w, h } = sizeCanvas(cv, Math.max(220, Math.round((cv.clientWidth||300)*0.78)));
+  const r = frame(ctx, w, h, axisLabel(p.h), axisLabel(p.v));
+  if (!S.values) return;
+
+  // render the slice into an offscreen canvas at native resolution
+  let o = off[p.key];
+  if (!o || o.cv.width !== nH || o.cv.height !== nV){
+    const c = document.createElement("canvas");
+    c.width = nH; c.height = nV;
+    o = off[p.key] = { cv:c, ctx:c.getContext("2d"), img:c.getContext("2d").createImageData(nH,nV) };
+  }
+  const px = o.img.data, lut = activeLUT();
+  const sh = S.strides[p.h], sv = S.strides[p.v], sf = S.strides[p.fix];
+  const base = S.idx[p.fix]*sf;
+  const span = (S.vmax - S.vmin) || 1, k = 255/span;
+  for (let j=0;j<nV;j++){
+    const rowBase = base + j*sv;
+    let q = (nV-1-j)*nH*4;                    // flip so the axis runs upward
+    for (let i=0;i<nH;i++, q+=4){
+      const val = S.values[rowBase + i*sh];
+      if (val !== val){ px[q]=214; px[q+1]=219; px[q+2]=226; px[q+3]=255; continue; }
+      let t = (val - S.vmin)*k;
+      t = t < 0 ? 0 : t > 255 ? 255 : t;
+      const li = (t|0)*3;
+      px[q]=lut[li]; px[q+1]=lut[li+1]; px[q+2]=lut[li+2]; px[q+3]=255;
+    }
+  }
+  o.ctx.putImageData(o.img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(o.cv, 0, 0, nH, nV, r.px, r.py, r.pw, r.ph);
+  ctx.strokeStyle = "#16202e"; ctx.lineWidth = 1;
+  ctx.strokeRect(r.px+.5, r.py+.5, r.pw-1, r.ph-1);
+
+  const [xlo,xhi] = axisExtent(p.h), [ylo,yhi] = axisExtent(p.v);
+  drawTicks(ctx, r, xlo, xhi, ylo, yhi);
+
+  // crosshair — dashed, as in the MATLAB explorer
+  const cx = r.px + (S.idx[p.h]+0.5)/nH*r.pw;
+  const cy = r.py + r.ph - (S.idx[p.v]+0.5)/nV*r.ph;
+  ctx.save();
+  ctx.setLineDash([5,4]); ctx.lineWidth = 1.25;
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.beginPath(); ctx.moveTo(r.px,cy); ctx.lineTo(r.px+r.pw,cy);
+  ctx.moveTo(cx,r.py); ctx.lineTo(cx,r.py+r.ph); ctx.stroke();
+  ctx.setLineDash([5,4]); ctx.lineDashOffset = 4.5;
+  ctx.strokeStyle = "rgba(0,0,0,.55)";
+  ctx.beginPath(); ctx.moveTo(r.px,cy); ctx.lineTo(r.px+r.pw,cy);
+  ctx.moveTo(cx,r.py); ctx.lineTo(cx,r.py+r.ph); ctx.stroke();
+  ctx.restore();
+
+  $("ttl-"+p.key).textContent = axisLabel(p.h) + " – " + axisLabel(p.v);
+  $("fix-"+p.key).textContent = axisLabel(p.fix) + " = " + fmtShort(axisValue(p.fix, S.idx[p.fix]));
+  p._rect = r;
+}
+
+/* ---- linecuts ---- */
+function drawCut(c){
+  const cv = $("cv-" + c.key);
+  const { ctx, w, h } = sizeCanvas(cv, 170);
+  const a = c.ax, n = S.dims[a];
+  const r = frame(ctx, w, h, axisLabel(a), S.dataName.split("/").pop());
+  if (!S.values || n < 2) return;
+
+  const others = [0,1,2].filter(d => d !== a);
+  const base = S.idx[others[0]]*S.strides[others[0]] + S.idx[others[1]]*S.strides[others[1]];
+  const sa = S.strides[a];
+  const y = new Float64Array(n);
+  let lo = Infinity, hi = -Infinity;
+  for (let i=0;i<n;i++){
+    const v = S.values[base + i*sa];
+    y[i] = v;
+    if (v === v){ if (v<lo) lo=v; if (v>hi) hi=v; }
+  }
+  if (!isFinite(lo)){ lo = 0; hi = 1; }
+  if (lo === hi){ lo -= 1; hi += 1; }
+  const pad = (hi-lo)*0.06; lo -= pad; hi += pad;
+  const [xlo,xhi] = axisExtent(a);
+  drawTicks(ctx, r, xlo, xhi, lo, hi);
+
+  const X = i => r.px + (i+0.5)/n*r.pw;
+  const Y = v => r.py + r.ph - (v-lo)/(hi-lo)*r.ph;
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(r.px, r.py, r.pw, r.ph); ctx.clip();
+  ctx.strokeStyle = "#2b4a7d"; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  let pen = false;
+  for (let i=0;i<n;i++){
+    const v = y[i];
+    if (v !== v){ pen = false; continue; }
+    const xx = X(i), yy = Y(v);
+    if (!pen){ ctx.moveTo(xx,yy); pen = true; } else ctx.lineTo(xx,yy);
+  }
+  ctx.stroke();
+
+  const mx = X(S.idx[a]);
+  ctx.setLineDash([5,4]); ctx.strokeStyle = "#a82d27"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(mx, r.py); ctx.lineTo(mx, r.py+r.ph); ctx.stroke();
+  ctx.setLineDash([]);
+  const cv0 = y[S.idx[a]];
+  if (cv0 === cv0){
+    ctx.fillStyle = "#a82d27";
+    ctx.beginPath(); ctx.arc(mx, Y(cv0), 3, 0, 6.2832); ctx.fill();
+  }
+  ctx.restore();
+
+  $("ttl-"+c.key).textContent = "cut along " + axisLabel(a) + "   ·   " +
+    others.map(d => axisLabel(d) + " = " + fmtShort(axisValue(d, S.idx[d]))).join(", ");
+}
+
+/* ============================================================
+   Redraw
+   ============================================================ */
+let pending = false;
+function redrawAll(){
+  if (pending) return;
+  pending = true;
+  requestAnimationFrame(()=>{
+    pending = false;
+    if (!S.values) return;
+    for (const p of PANELS){
+      const usable = S.dims[p.h] > 1 && S.dims[p.v] > 1;
+      $("pan-"+p.key).classList.toggle("hidden", !usable);
+      if (usable) drawPanel(p);
+    }
+    for (const c of CUTS){
+      const usable = S.dims[c.ax] > 1;
+      $("cut-"+c.key).classList.toggle("hidden", !usable);
+      if (usable) drawCut(c);
+    }
+    updateReadout();
+  });
+}
+
+function updateReadout(){
+  const [i,j,k] = S.idx;
+  const v = S.values[i*S.strides[0] + j*S.strides[1] + k*S.strides[2]];
+  $("kX").textContent = axisLabel(0);
+  $("kY").textContent = axisLabel(1);
+  $("kZ").textContent = axisLabel(2);
+  $("kV").textContent = S.dataName.split("/").pop();
+  $("rX").textContent = fmt(axisValue(0,i));
+  $("rY").textContent = fmt(axisValue(1,j));
+  $("rZ").textContent = fmt(axisValue(2,k));
+  $("rV").textContent = fmt(v);
+  $("rI").textContent = (i+1) + ", " + (j+1) + ", " + (k+1);
+  const ids = [["slx",0],["sly",1],["slz",2]];
+  for (const [id,d] of ids){
+    $(id).classList.toggle("hidden", S.dims[d] < 2);
+    $(id+"N").textContent = axisLabel(d);
+    $(id+"V").textContent = fmtShort(axisValue(d, S.idx[d])) + "   [" + (S.idx[d]+1) + "/" + S.dims[d] + "]";
+    const rng = $(id+"R");
+    rng.max = S.dims[d]-1;
+    if (+rng.value !== S.idx[d]) rng.value = S.idx[d];
+  }
+}
+
+function showAll(){
+  for (const id of ["readout","sliders","panels","cuts"]) $(id).classList.remove("hidden");
+  $("empty").classList.add("hidden");
+}
+
+/* ============================================================
+   Pointer interaction on the image panels
+   ============================================================ */
+function bindPanel(p){
+  const cv = $("cv-" + p.key);
+  let down = false;
+  const move = ev => {
+    if (!S.values || !p._rect) return;
+    const r = p._rect, b = cv.getBoundingClientRect();
+    const x = ev.clientX - b.left, y = ev.clientY - b.top;
+    let i = Math.floor((x - r.px)/r.pw * S.dims[p.h]);
+    let j = Math.floor((r.py + r.ph - y)/r.ph * S.dims[p.v]);
+    i = Math.max(0, Math.min(S.dims[p.h]-1, i));
+    j = Math.max(0, Math.min(S.dims[p.v]-1, j));
+    if (i === S.idx[p.h] && j === S.idx[p.v]) return;
+    S.idx[p.h] = i; S.idx[p.v] = j;
+    redrawAll();
+  };
+  cv.addEventListener("pointerdown", ev => { down = true; cv.setPointerCapture(ev.pointerId); move(ev); });
+  cv.addEventListener("pointermove", ev => { if (down) move(ev); });
+  cv.addEventListener("pointerup",   ev => { down = false; try{ cv.releasePointerCapture(ev.pointerId); }catch(e){} });
+  cv.addEventListener("pointercancel", ()=>{ down = false; });
+  cv.addEventListener("wheel", ev => {
+    if (!S.values) return;
+    ev.preventDefault();
+    const d = p.fix, step = ev.deltaY > 0 ? 1 : -1;
+    S.idx[d] = Math.max(0, Math.min(S.dims[d]-1, S.idx[d] + step));
+    redrawAll();
+  }, { passive:false });
+}
+PANELS.forEach(bindPanel);
+
+[["slxR",0],["slyR",1],["slzR",2]].forEach(([id,d])=>{
+  $(id).addEventListener("input", e => { S.idx[d] = +e.target.value; redrawAll(); });
+});
+
+window.addEventListener("keydown", e => {
+  if (!S.values) return;
+  const map = { ArrowLeft:[0,-1], ArrowRight:[0,1], ArrowDown:[1,-1], ArrowUp:[1,1], PageDown:[2,-1], PageUp:[2,1] };
+  const m = map[e.key];
+  if (!m) return;
+  if (["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) return;
+  e.preventDefault();
+  const [d,s] = m;
+  S.idx[d] = Math.max(0, Math.min(S.dims[d]-1, S.idx[d]+s));
+  redrawAll();
+});
+
+let rto;
+window.addEventListener("resize", ()=>{ clearTimeout(rto); rto = setTimeout(redrawAll, 80); });
+
+/* ============================================================
+   Display controls
+   ============================================================ */
+$("selData").addEventListener("change", e => selectData(e.target.value));
+["selX","selY","selZ"].forEach((id,d)=>{
+  $(id).addEventListener("change", ()=>{ applyAxis(d); redrawAll(); });
+});
+$("selCmap").addEventListener("change", e => { S.cmap = e.target.value; S._inv = null; redrawAll(); });
+$("cbInv").addEventListener("change", e => { S.invert = e.target.checked; S._inv = null; redrawAll(); });
+$("inVmin").addEventListener("input", e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.vmin = v; redrawAll(); } });
+$("inVmax").addEventListener("input", e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.vmax = v; redrawAll(); } });
+
+function setRange(lo, hi){
+  if (!(hi > lo)) return;
+  S.vmin = lo; S.vmax = hi;
+  $("inVmin").value = +lo.toPrecision(6);
+  $("inVmax").value = +hi.toPrecision(6);
+  redrawAll();
+}
+$("bAutoAll").addEventListener("click", ()=> setRange(S.fullMin, S.fullMax));
+$("bAutoSlice").addEventListener("click", ()=>{
+  const p = PANELS[0], nH = S.dims[p.h], nV = S.dims[p.v];
+  const base = S.idx[p.fix]*S.strides[p.fix];
+  let lo = Infinity, hi = -Infinity;
+  for (let j=0;j<nV;j++){
+    const rb = base + j*S.strides[p.v];
+    for (let i=0;i<nH;i++){ const v = S.values[rb + i*S.strides[p.h]]; if (v===v){ if(v<lo)lo=v; if(v>hi)hi=v; } }
+  }
+  setRange(lo, hi);
+});
+$("bAutoPct").addEventListener("click", ()=>{
+  const N = S.values.length, stride = Math.max(1, Math.floor(N/200000));
+  const s = [];
+  for (let i=0;i<N;i+=stride){ const v = S.values[i]; if (v===v) s.push(v); }
+  if (s.length < 4) return;
+  s.sort((a,b)=>a-b);
+  setRange(s[Math.floor(s.length*0.01)], s[Math.floor(s.length*0.99)]);
+});
+
+/* ============================================================
+   Local files
+   ============================================================ */
+$("bLocal").addEventListener("click", ()=> $("fileInput").click());
+$("fileInput").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (f) openBuffer(await f.arrayBuffer(), f.name);
+});
+["dragenter","dragover"].forEach(t => window.addEventListener(t, e => { e.preventDefault(); document.body.classList.add("drag"); }));
+["dragleave","drop"].forEach(t => window.addEventListener(t, e => { e.preventDefault(); if (t==="dragleave" && e.relatedTarget) return; document.body.classList.remove("drag"); }));
+window.addEventListener("drop", async e => {
+  const f = e.dataTransfer.files[0];
+  if (f) openBuffer(await f.arrayBuffer(), f.name);
+});
+
+/* ============================================================
+   Google Drive
+   ============================================================ */
+let tokenClient = null;
+function connect(then){
+  if (S.token){ then && then(); return; }
+  if (!window.google || !google.accounts){ status("Google sign-in library did not load", "err"); return; }
+  tokenClient = tokenClient || google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPE,
+    callback: resp => {
+      if (resp.error){ status("sign-in failed: " + resp.error, "err"); return; }
+      S.token = resp.access_token;
+      setTimeout(()=>{ S.token = null; }, (resp.expires_in ? resp.expires_in-60 : 3500)*1000);
+      $("bFolder").disabled = false; $("bFiles").disabled = false;
+      $("bConnect").textContent = "Signed in";
+      status("Signed in", "ok");
+      if (S.folderId) listFolder(S.folderId);
+      then && then();
+    },
+    error_callback: err => status("sign-in cancelled" + (err && err.type ? " (" + err.type + ")" : ""), "err")
+  });
+  tokenClient.requestAccessToken();
+}
+$("bConnect").addEventListener("click", ()=> connect());
+
+function api(path){
+  return fetch("https://www.googleapis.com" + path, { headers:{ Authorization:"Bearer " + S.token } })
+    .then(async res => {
+      const t = await res.text();
+      let j = null; try{ j = JSON.parse(t); }catch(e){}
+      if (!res.ok) throw new Error((j && j.error && j.error.message) || res.status + " " + res.statusText);
+      return j;
+    });
+}
+
+function openPicker(foldersOnly){
+  if (!S.pickerReady){ status("Picker is still loading", "err"); return; }
+  const view = label => {
+    const v = new google.picker.DocsView(google.picker.ViewId.DOCS)
+      .setIncludeFolders(true).setSelectFolderEnabled(foldersOnly)
+      .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
+    return v;
+  };
+  const mine = view("My Drive").setOwnedByMe(true);
+  const shared = view("Shared with me").setOwnedByMe(false);
+  const drives = view("Shared drives").setEnableDrives(true);
+  const b = new google.picker.PickerBuilder()
+    .setOAuthToken(S.token).setDeveloperKey(API_KEY).setAppId(APP_ID)
+    .addView(mine).addView(shared).addView(drives)
+    .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
+    .setCallback(data => {
+      if (data.action !== google.picker.Action.PICKED) return;
+      const doc = data.docs[0];
+      if (doc.mimeType === FOLDER_MIME){ S.folderId = doc.id; saveHash(); listFolder(doc.id); }
+      else showFiles(data.docs.map(d => ({ id:d.id, name:d.name, size:d.sizeBytes })));
+    });
+  if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
+  if (location.origin) b.setOrigin(location.origin);
+  b.build().setVisible(true);
+}
+$("bFolder").addEventListener("click", ()=> connect(()=> openPicker(true)));
+$("bFiles").addEventListener("click",  ()=> connect(()=> openPicker(false)));
+
+function listFolder(id){
+  status("Listing folder…");
+  const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
+  api("/drive/v3/files?q=" + q + "&pageSize=200&orderBy=name" +
+      "&fields=files(id,name,mimeType,size)&supportsAllDrives=true&includeItemsFromAllDrives=true")
+    .then(r => {
+      const fs = (r.files||[]).filter(f => f.mimeType !== FOLDER_MIME && DATA_EXT.test(f.name));
+      if (!fs.length){ status("no .mat files in that folder", "err"); showFiles([]); return; }
+      showFiles(fs.map(f => ({ id:f.id, name:f.name, size:f.size })));
+      status(fs.length + " file" + (fs.length===1?"":"s") + " available", "ok");
+      $("bShare").classList.remove("hidden");
+    })
+    .catch(e => status("cannot list folder: " + e.message, "err"));
+}
+
+function showFiles(list){
+  const box = $("files");
+  box.innerHTML = "";
+  $("filesBar").classList.toggle("hidden", !list.length);
+  for (const f of list){
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.innerHTML = f.name + (f.size ? '<span class="sz">' + fmtBytes(+f.size) + "</span>" : "");
+    b.addEventListener("click", ()=>{
+      [...box.children].forEach(c => c.classList.remove("on"));
+      b.classList.add("on");
+      loadDriveFile(f);
+    });
+    box.appendChild(b);
+  }
+}
+
+async function loadDriveFile(f){
+  if (!S.token){ connect(()=> loadDriveFile(f)); return; }
+  try{
+    status("Downloading " + f.name + " …");
+    const res = await fetch("https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media&supportsAllDrives=true",
+      { headers:{ Authorization:"Bearer " + S.token } });
+    if (!res.ok) throw new Error(res.status + " " + res.statusText);
+    const total = +(f.size || res.headers.get("content-length") || 0);
+    const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+    let buf;
+    if (reader){
+      const chunks = []; let got = 0;
+      for(;;){
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); got += value.length;
+        status("Downloading " + f.name + " — " + fmtBytes(got) + (total ? " of " + fmtBytes(total) : ""));
+      }
+      buf = new Uint8Array(got); let o = 0;
+      for (const c of chunks){ buf.set(c, o); o += c.length; }
+      buf = buf.buffer;
+    } else {
+      buf = await res.arrayBuffer();
+    }
+    await openBuffer(buf, f.name);
+  }catch(e){
+    status("download failed: " + e.message, "err");
+  }
+}
+
+function saveHash(){ if (S.folderId) history.replaceState(null,"","#folder=" + S.folderId); }
+$("bShare").addEventListener("click", ()=>{
+  const url = location.origin + location.pathname + "#folder=" + S.folderId;
+  navigator.clipboard.writeText(url).then(
+    ()=> status("Link copied — send it to a collaborator you have shared the folder with", "ok"),
+    ()=> status(url, "")
+  );
+});
+
+/* ============================================================
+   Boot
+   ============================================================ */
+(function readHash(){
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (p.get("folder")) S.folderId = p.get("folder");
 })();
+
+(function waitPicker(){
+  if (window.gapi){ gapi.load("picker", ()=>{ S.pickerReady = true; }); }
+  else setTimeout(waitPicker, 250);
+})();
+
+try{
+  S.h5 = await loadH5();
+  status(S.folderId ? "Ready — sign in to open the shared folder" : "Ready");
+  if (S.folderId) $("bConnect").textContent = "Connect Drive";
+}catch(e){
+  status("could not load the HDF5 engine — check the network and reload", "err");
+}
 </script>
 </body>
 </html>
