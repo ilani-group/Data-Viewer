@@ -11,7 +11,7 @@
     --pass:#146b52; --fail:#a82d27;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --leftW: 262px; --rightW: 296px;
+    --leftW: 262px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;height:100%;overflow:hidden}
@@ -20,7 +20,6 @@
   #app{display:flex;height:100vh;width:100vw}
   aside{background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
   #left{width:var(--leftW);border-right:1px solid var(--rule);flex:0 0 var(--leftW)}
-  #right{width:var(--rightW);border-left:1px solid var(--rule);flex:0 0 var(--rightW)}
   #stage{flex:1 1 auto;min-width:320px;position:relative;
     background-image:linear-gradient(var(--rule-faint) 1px,transparent 1px),
                      linear-gradient(90deg,var(--rule-faint) 1px,transparent 1px);
@@ -85,6 +84,17 @@
   .node .car{width:13px;flex:0 0 13px;color:var(--muted);font-size:9px}
   .node.sel .car{color:#9fb0c4}
   .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #ctl{position:absolute;background:var(--surface);border:1px solid var(--rule);
+    padding:11px 13px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+  #ctl h2{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 5px;font-weight:600}
+  #ctl .grp{}
+  #ctl .line{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  #ctl select{width:auto;flex:1;min-width:110px}
+  #ctl input[type=number]{width:96px}
+  #ctl .txt{padding:6px 9px;width:auto;font-size:10px}
+  #ctl .foot{margin-top:auto;font-size:10px;color:var(--muted);display:flex;
+    justify-content:space-between;gap:8px}
   .zoombar{display:flex;gap:6px}
   .zb{flex:1;padding:7px 0;display:flex;align-items:center;justify-content:center;
       border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
@@ -99,6 +109,17 @@
   .dir:hover{background:#e6ecf4;color:var(--ink)}
   .other{color:var(--muted);cursor:default}
   .other:hover{background:transparent;color:var(--muted)}
+  #ctl{position:absolute;background:var(--surface);border:1px solid var(--rule);
+    padding:11px 13px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+  #ctl h2{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 5px;font-weight:600}
+  #ctl .grp{}
+  #ctl .line{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  #ctl select{width:auto;flex:1;min-width:110px}
+  #ctl input[type=number]{width:96px}
+  #ctl .txt{padding:6px 9px;width:auto;font-size:10px}
+  #ctl .foot{margin-top:auto;font-size:10px;color:var(--muted);display:flex;
+    justify-content:space-between;gap:8px}
   .zoombar{display:flex;gap:6px}
   .zb{flex:1;padding:7px 0;display:flex;align-items:center;justify-content:center;
       border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
@@ -128,7 +149,7 @@
     <div class="sec" style="border-bottom:1px solid var(--rule);padding-bottom:9px">
       <h2>Location</h2>
       <div class="btns">
-        <button class="ghost row" id="bFolder">Find folder…</button>
+        <button class="ghost row" id="bFolder">Top folder…</button>
         <button class="ghost row" id="bRefresh">Refresh</button>
       </div>
     </div>
@@ -136,105 +157,89 @@
     <div id="tree"><div class="none">No folder yet.</div></div>
     <div id="fileList" class="grow"><div class="none">Files appear here.</div></div>
     <div class="sec" style="border-top:1px solid var(--rule)">
-      <button class="ghost" id="bLocal">Local file…</button>
+      <div class="btns">
+        <button class="ghost row" id="bLocal">Local…</button>
+        <button class="ghost row" id="bConnect">Connect</button>
+      </div>
+      <div class="btns"><button class="ghost hidden" id="bShare">Copy folder link</button></div>
     </div>
   </aside>
 
   <main id="stage">
     <canvas id="cv"></canvas>
+
+    <div id="ctl" class="hidden">
+      <div class="grp">
+        <h2>Zoom</h2>
+        <div class="zoombar">
+          <button class="zb" id="zV" title="Vertical zoom — drag a band">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M2 6h20" stroke-dasharray="3 2.5"/><path d="M2 18h20" stroke-dasharray="3 2.5"/>
+              <path d="M12 9.5v5"/><path d="M12 8.2 9.9 11"/><path d="M12 8.2 14.1 11"/>
+              <path d="M12 15.8 9.9 13"/><path d="M12 15.8 14.1 13"/></svg></button>
+          <button class="zb" id="zH" title="Horizontal zoom — drag a band">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M6 2v20" stroke-dasharray="3 2.5"/><path d="M18 2v20" stroke-dasharray="3 2.5"/>
+              <path d="M9.5 12h5"/><path d="M8.2 12 11 9.9"/><path d="M8.2 12 11 14.1"/>
+              <path d="M15.8 12 13 9.9"/><path d="M15.8 12 13 14.1"/></svg></button>
+          <button class="zb" id="zB" title="Box zoom — drag a rectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <rect x="3.5" y="4.5" width="17" height="15" stroke-dasharray="3 2.5"/>
+              <path d="M9.6 14.4 14.4 9.6"/><path d="M9.6 14.4v-3"/><path d="M9.6 14.4h3"/>
+              <path d="M14.4 9.6v3"/><path d="M14.4 9.6h-3"/></svg></button>
+          <button class="zb" id="zO" title="Zoom out to the full range">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <rect x="8.5" y="9" width="7" height="6" stroke-dasharray="2.5 2"/>
+              <path d="M6.2 6.2 3 3"/><path d="M3 6.4V3h3.4"/><path d="M17.8 6.2 21 3"/><path d="M21 6.4V3h-3.4"/>
+              <path d="M6.2 17.8 3 21"/><path d="M3 17.6V21h3.4"/><path d="M17.8 17.8 21 21"/><path d="M21 17.6V21h-3.4"/></svg></button>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h2>Colour</h2>
+        <div class="line">
+          <select id="selCmap">
+            <option value="whitejet7">whitejet7</option>
+            <option value="parula">parula</option>
+            <option value="viridis">viridis</option>
+            <option value="inferno">inferno</option>
+            <option value="turbo">turbo</option>
+            <option value="jet">jet</option>
+            <option value="rdbu">red–white–blue</option>
+            <option value="purple">white–purple–black</option>
+            <option value="gray">gray</option>
+          </select>
+          <label class="chk" style="margin:0"><input type="checkbox" id="cbInv"> invert</label>
+        </div>
+        <div class="line" style="margin-top:6px">
+          <input type="number" id="inVmin" step="any" title="colour minimum">
+          <input type="number" id="inVmax" step="any" title="colour maximum">
+          <button class="zb" id="cR" style="flex:0 0 38px" title="Scale colours from a rectangle you draw">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <rect x="3.5" y="5.5" width="17" height="13" stroke-dasharray="3 2.5"/>
+              <path d="M7.5 15.5 10 10l2.2 4 1.7-2.4 2.6 4"/></svg></button>
+          <button class="ghost txt" id="bAutoSlice">Slice</button>
+          <button class="ghost txt" id="bAutoPct">1–99%</button>
+        </div>
+      </div>
+
+      <div class="foot"><span id="status">Loading…</span><span id="buildTag"></span></div>
+    </div>
+
     <div id="splash">
       <div>
         <b>Explore 3D</b>
-        Pick a folder shared with you, or drop a <code>.mat</code> file here.<br>
+        Choose a top folder, or drop a <code>.mat</code> file here.<br>
         MATLAB files must be saved with <code>-v7.3</code>.
       </div>
     </div>
   </main>
 
-  <aside id="right">
-    <div class="brand">
-      <h1>Explore 3D</h1>
-      <p>drag the dashed lines to move slices</p>
-    </div>
-
-    <div class="sec"><div id="status">Loading HDF5 engine…</div></div>
-
-    <div class="hidden">
-      <select id="selData"></select><select id="selX"></select>
-      <select id="selY"></select><select id="selZ"></select>
-      <span id="dimsTag"></span>
-    </div>
-
-    <div class="sec hidden" id="secView">
-      <h2>Zoom</h2>
-      <div class="zoombar">
-        <button class="zb" id="zV" title="Vertical zoom — drag a band up or down">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-            <path d="M2 6h20" stroke-dasharray="3 2.5"/><path d="M2 18h20" stroke-dasharray="3 2.5"/>
-            <path d="M12 9.5v5"/><path d="M12 8.2 9.9 11"/><path d="M12 8.2 14.1 11"/>
-            <path d="M12 15.8 9.9 13"/><path d="M12 15.8 14.1 13"/>
-          </svg></button>
-        <button class="zb" id="zH" title="Horizontal zoom — drag a band left or right">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-            <path d="M6 2v20" stroke-dasharray="3 2.5"/><path d="M18 2v20" stroke-dasharray="3 2.5"/>
-            <path d="M9.5 12h5"/><path d="M8.2 12 11 9.9"/><path d="M8.2 12 11 14.1"/>
-            <path d="M15.8 12 13 9.9"/><path d="M15.8 12 13 14.1"/>
-          </svg></button>
-        <button class="zb" id="zB" title="Box zoom — drag a rectangle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-            <rect x="3.5" y="4.5" width="17" height="15" stroke-dasharray="3 2.5"/>
-            <path d="M9.6 14.4 14.4 9.6"/><path d="M9.6 14.4v-3"/><path d="M9.6 14.4h3"/>
-            <path d="M14.4 9.6v3"/><path d="M14.4 9.6h-3"/>
-          </svg></button>
-        <button class="zb" id="zO" title="Zoom out to the full range">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-            <rect x="8.5" y="9" width="7" height="6" stroke-dasharray="2.5 2"/>
-            <path d="M6.2 6.2 3 3"/><path d="M3 6.4V3h3.4"/>
-            <path d="M17.8 6.2 21 3"/><path d="M21 6.4V3h-3.4"/>
-            <path d="M6.2 17.8 3 21"/><path d="M3 17.6V21h3.4"/>
-            <path d="M17.8 17.8 21 21"/><path d="M21 17.6V21h-3.4"/>
-          </svg></button>
-      </div>
-    </div>
-
-    <div class="sec hidden" id="secDisp">
-      <h2>Colour</h2>
-      <div class="fld"><label>Colormap</label>
-        <select id="selCmap">
-          <option value="whitejet7">whitejet7</option>
-          <option value="parula">parula</option>
-          <option value="viridis">viridis</option>
-          <option value="inferno">inferno</option>
-          <option value="turbo">turbo</option>
-          <option value="jet">jet</option>
-          <option value="rdbu">red–white–blue</option>
-          <option value="purple">white–purple–black</option>
-          <option value="gray">gray</option>
-        </select>
-      </div>
-      <div class="pair">
-        <div class="fld"><label>Min</label><input type="number" id="inVmin" step="any"></div>
-        <div class="fld"><label>Max</label><input type="number" id="inVmax" step="any"></div>
-      </div>
-      <div class="btns"><button class="ghost row" id="bAutoAll">Volume</button>
-        <button class="ghost row" id="bAutoSlice">Slice</button>
-        <button class="ghost row" id="bAutoPct">1–99%</button></div>
-      <label class="chk"><input type="checkbox" id="cbInv"> invert colormap</label>
-    </div>
-
-    <div class="sec grow">
-      <h2>Account</h2>
-      <div class="btns"><button class="ghost" id="bConnect">Connect Drive</button></div>
-      <div class="btns"><button class="ghost hidden" id="bShare">Copy folder link</button></div>
-      <p class="hint" style="margin-top:11px" id="buildTag"></p>
-      <p class="hint" style="margin-top:11px">
-        drag dashed lines to move slices<br>
-        wheel over a panel steps its slice<br>
-        drag the colorbar to shift, wheel to scale<br>
-        arrows / PgUp / PgDn step the cursor
-      </p>
-    </div>
-  </aside>
+  <div class="hidden">
+    <select id="selData"></select><select id="selX"></select>
+    <select id="selY"></select><select id="selZ"></select>
+    <span id="dimsTag"></span><button id="bAutoAll"></button>
+  </div>
 
 </div>
 <input type="file" id="fileInput" accept=".mat,.h5,.hdf5" class="hidden">
@@ -253,7 +258,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.readonly";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 11 — zoom";
+const BUILD = "build 12";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -422,7 +427,7 @@ async function openBuffer(buf,name){
     S.vectors=all.filter(e=>e.eff.length===1&&e.count>1).sort((a,b)=>a.path.localeCompare(b.path));
     if (!S.candidates.length) throw new Error("no 2-D or 3-D arrays in this file");
     fillSelect($("selData"),S.candidates.map(e=>({v:e.path,t:e.path+"  ["+e.eff.join(" × ")+"]"})));
-    $("secDisp").classList.remove("hidden"); $("secView").classList.remove("hidden");
+    $("ctl").classList.remove("hidden");
     selectData(S.candidates[0].path);
     status(name,"ok");
   }catch(e){ console.error(e); status(e.message,"err"); }
@@ -559,6 +564,7 @@ function resize(){
   cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
   L=layout(W,H);
+  placeCtl();
   for (const p of PAN) p._built=-1;
 }
 
@@ -731,28 +737,11 @@ function drawColorbar(){
   ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font="11px "+MONO;
   ctx.fillText(S.dataName.split("/").pop(),0,0); ctx.restore();
 }
-function drawInfo(){
-  const r=L.info;
-  ctx.fillStyle="#16202e"; ctx.fillRect(r.x,r.y,r.w,r.h);
-  const v=S.values?S.values[S.idx[0]*S.strides[0]+S.idx[1]*S.strides[1]+S.idx[2]*S.strides[2]]:NaN;
-  let y=r.y+26;
-  ctx.textAlign="left"; ctx.textBaseline="middle";
-  for (let d=0;d<3;d++){
-    if (S.dims[d]<2) continue;
-    ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
-    ctx.fillText(axName(d).toUpperCase(),r.x+18,y-13);
-    ctx.fillStyle="#ffffff"; ctx.font="16px "+MONO;
-    ctx.fillText(fmt(axVal(d,S.idx[d])),r.x+18,y+4);
-    ctx.fillStyle="#6f8399"; ctx.font="10.5px "+MONO;
-    ctx.fillText("index "+(S.idx[d]+1)+" / "+S.dims[d],r.x+Math.min(170,r.w-95),y+4);
-    y+=38;
-  }
-  ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
-  ctx.fillText(S.dataName.split("/").pop().toUpperCase(),r.x+18,y-13);
-  ctx.fillStyle="#8fd3b6"; ctx.font="20px "+MONO;
-  ctx.fillText(fmt(v),r.x+18,y+6);
-  ctx.fillStyle="#61748a"; ctx.font="10px "+MONO; ctx.textBaseline="bottom";
-  ctx.fillText(S.fileName,r.x+18,r.y+r.h-12);
+function placeCtl(){
+  if (!L) return;
+  const c=$("ctl"), r=L.info;
+  c.style.left=r.x+"px"; c.style.top=r.y+"px";
+  c.style.width=r.w+"px"; c.style.height=r.h+"px";
 }
 
 let raf=false;
@@ -764,7 +753,7 @@ function draw(){
     ctx.clearRect(0,0,cv.width,cv.height);
     for (const s of STRIP) drawStrip(s);
     for (const p of PAN) drawPanel(p);
-    drawColorbar(); drawInfo(); drawZoomOverlay();
+    drawColorbar(); drawZoomOverlay();
   });
 }
 
@@ -772,17 +761,19 @@ function draw(){
    Arm one of the three modes, then drag inside any 2-D panel.  A band or
    rectangle previews the new window; releasing applies it.  Because the
    panels share axes, zooming one narrows the others on the same axis.   */
-const ZBTN={v:"zV",h:"zH",box:"zB"};
+const ZBTN={v:"zV",h:"zH",box:"zB",clr:"cR"};
 let ZOOM=null, ZDRAG=null;
 function armZoom(m){
   ZOOM = (ZOOM===m) ? null : m;
   for (const [k,id] of Object.entries(ZBTN)) $(id).classList.toggle("arm",ZOOM===k);
   cv.style.cursor = ZOOM ? "crosshair" : "default";
-  status(ZOOM ? "Drag inside a panel to set the window" : "", ZOOM?"":"");
+  status(ZOOM ? (ZOOM==="clr" ? "Drag a rectangle — colours scale to what is inside"
+                              : "Drag inside a panel to set the window") : "");
 }
 $("zV").addEventListener("click",()=>armZoom("v"));
 $("zH").addEventListener("click",()=>armZoom("h"));
 $("zB").addEventListener("click",()=>armZoom("box"));
+$("cR").addEventListener("click",()=>armZoom("clr"));
 $("zO").addEventListener("click",()=>{
   if (!S.values) return;
   S.view=S.dims.map(d=>[0,d-1]);
@@ -795,6 +786,18 @@ function panelAt(x,y){
     if (x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) return p;
   }
   return null;
+}
+function colourFromRect(){
+  const {p,x0,y0,x1,y1}=ZDRAG, r=L[p.key];
+  let h0=ixOf(r,p.h,Math.min(x0,x1)), h1=ixOf(r,p.h,Math.max(x0,x1));
+  let v0=iyOf(r,p.v,Math.max(y0,y1)), v1=iyOf(r,p.v,Math.min(y0,y1));
+  if (h0>h1){const t=h0;h0=h1;h1=t;} if (v0>v1){const t=v0;v0=v1;v1=t;}
+  const sh=S.strides[p.h], sv=S.strides[p.v], base=S.idx[p.fix]*S.strides[p.fix];
+  let lo=Infinity,hi=-Infinity;
+  for (let j=v0;j<=v1;j++){ const rb=base+j*sv;
+    for (let i=h0;i<=h1;i++){ const v=S.values[rb+i*sh]; if (v===v){ if(v<lo)lo=v; if(v>hi)hi=v; } } }
+  if (isFinite(lo)&&hi>lo) setRange(lo,hi);
+  else status("nothing to scale to in that rectangle","err");
 }
 function applyZoom(){
   const {p,x0,y0,x1,y1,mode}=ZDRAG, r=L[p.key];
@@ -814,8 +817,8 @@ function drawZoomOverlay(){
   if (!ZDRAG) return;
   const {p,x0,y0,x1,y1,mode}=ZDRAG, r=L[p.key];
   let x=r.x,w=r.w,y=r.y,h=r.h;
-  if (mode==="h"||mode==="box"){ x=Math.min(x0,x1); w=Math.abs(x1-x0); }
-  if (mode==="v"||mode==="box"){ y=Math.min(y0,y1); h=Math.abs(y1-y0); }
+  if (mode==="h"||mode==="box"||mode==="clr"){ x=Math.min(x0,x1); w=Math.abs(x1-x0); }
+  if (mode==="v"||mode==="box"||mode==="clr"){ y=Math.min(y0,y1); h=Math.abs(y1-y0); }
   ctx.save();
   ctx.fillStyle="rgba(43,74,125,.16)";
   ctx.fillRect(x,y,w,h);
@@ -902,7 +905,8 @@ cv.addEventListener("pointerdown",ev=>{
   else { DRAG=h; applyDrag(h,x,y); }
 });
 const endDrag=ev=>{
-  if (ZDRAG){ applyZoom(); ZDRAG=null; armZoom(null); draw(); }
+  if (ZDRAG){ if (ZDRAG.mode==="clr") colourFromRect(); else applyZoom();
+               ZDRAG=null; armZoom(null); draw(); }
   DRAG=null; try{cv.releasePointerCapture(ev.pointerId);}catch(e){}
 };
 cv.addEventListener("pointerup",endDrag);
@@ -1042,7 +1046,13 @@ function openPicker(foldersOnly,startIn){
     .setCallback(data=>{
       if (data.action!==google.picker.Action.PICKED) return;
       const doc=data.docs[0];
-      if (doc.mimeType===FOLDER_MIME){ store.del("file"); selectFolder(doc.id,true); }
+      if (doc.mimeType===FOLDER_MIME){
+        TOP={id:doc.id,name:doc.name||"folder"};
+        store.set("top",JSON.stringify(TOP));
+        store.del("file");
+        ROOTS=[]; kidCache.clear(); metaCache.clear();
+        initTree().then(()=>selectFolder(doc.id,true));
+      }
       else if (doc.parentId) selectFolder(doc.parentId,false);
     });
   if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
@@ -1055,7 +1065,8 @@ $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
    With drive.readonly the app sees whatever the signed-in user sees, so the
    tree can be rooted at My Drive and Shared with me, exactly like Drive.    */
 const SHARED="__shared";
-let ROOT_ID=null, ROOTS=[], SEL=null;
+let ROOT_ID=null, ROOTS=[], SEL=null, TOP=null;
+try{ TOP=JSON.parse(store.get("top")||"null"); }catch(e){}
 const metaCache=new Map(), kidCache=new Map();
 
 async function meta(id){
@@ -1082,7 +1093,7 @@ async function chainOf(id){                       // outermost first
   while (cur&&guard++<16){
     let m; try{ m=await meta(cur); }catch(e){ break; }
     out.unshift({id:m.id,name:m.id===ROOT_ID?"My Drive":m.name});
-    if (m.id===ROOT_ID||m.id===SHARED) break;
+    if (m.id===ROOT_ID||m.id===SHARED||(TOP&&m.id===TOP.id)) break;
     cur=(m.parents&&m.parents[0])||null;
   }
   return out;
@@ -1137,6 +1148,13 @@ function drawCrumbs(chain){
 }
 async function initTree(){
   if (ROOTS.length) return;
+  if (TOP){                                  // a chosen top folder is the only root
+    ROOTS=[mkNode(TOP.id,TOP.name)];
+    await loadKids(ROOTS[0]); ROOTS[0].open=true;
+    drawTree();
+    if (!S.folderId) selectFolder(TOP.id,false);
+    return;
+  }
   try{ ROOT_ID=(await api("/drive/v3/files/root?fields=id")).id; }catch(e){ ROOT_ID="root"; }
   ROOTS=[mkNode(ROOT_ID,"My Drive"), mkNode(SHARED,"Shared with me")];
   await loadKids(ROOTS[0]); ROOTS[0].open=true;
@@ -1155,9 +1173,9 @@ async function selectFolder(id,autoOpen){
     if (chain.length) S.folderName=chain[chain.length-1].name;
     drawCrumbs(chain.length?chain:[{id:id,name:"folder"}]);
     /* graft the path into whichever root it belongs under */
-    let host = (chain.length&&chain[0].id===ROOT_ID) ? ROOTS[0] : ROOTS[1];
-    let n=host;
-    for (let i=(chain.length&&chain[0].id===ROOT_ID)?1:0;i<chain.length;i++){
+    const rooted = chain.length && chain[0].id===ROOTS[0].id;
+    let n = rooted ? ROOTS[0] : (ROOTS[1]||ROOTS[0]);
+    for (let i=rooted?1:0;i<chain.length;i++){
       await loadKids(n); n.open=true;
       let nx=n.kids.find(k=>k.id===chain[i].id);
       if (!nx){ nx=mkNode(chain[i].id,chain[i].name); n.kids.push(nx); }
