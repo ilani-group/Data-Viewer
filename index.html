@@ -11,7 +11,7 @@
     --pass:#146b52; --fail:#a82d27;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --leftW: 208px; --rightW: 296px;
+    --leftW: 262px; --rightW: 296px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;height:100%;overflow:hidden}
@@ -69,8 +69,24 @@
   .file.on{background:var(--ink);color:#fff}
   .file .sz{display:block;font-size:9.5px;color:var(--muted);margin-top:1px}
   .file.on .sz{color:#93a7bd}
-  .folder{font-family:var(--mono);font-size:10.5px;color:var(--blueprint);
-    padding:9px 13px;border-bottom:1px solid var(--rule-faint);word-break:break-all}
+  .crumbs{padding:8px 11px;border-bottom:1px solid var(--rule);font-family:var(--mono);
+    font-size:10.5px;line-height:1.9;word-break:break-word}
+  .crumbs button{display:inline;width:auto;padding:2px 5px;border:0;background:#eef2f7;
+    color:var(--blueprint);font-size:10.5px;letter-spacing:0;text-transform:none;cursor:pointer}
+  .crumbs button:hover{background:var(--blueprint);color:#fff}
+  .crumbs button.here{background:var(--ink);color:#fff}
+  .crumbs .sep{color:var(--muted);padding:0 1px}
+  #tree{flex:0 0 38%;overflow-y:auto;border-bottom:1px solid var(--rule);min-height:78px}
+  .node{display:flex;align-items:center;gap:2px;width:100%;text-align:left;font-family:var(--mono);
+    font-size:11.5px;padding:4px 8px;border:0;background:transparent;color:var(--ink);
+    cursor:pointer;text-transform:none;letter-spacing:0}
+  .node:hover{background:#eef2f7}
+  .node.sel{background:var(--ink);color:#fff}
+  .node .car{width:13px;flex:0 0 13px;color:var(--muted);font-size:9px}
+  .node.sel .car{color:#9fb0c4}
+  .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grouphdr{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);padding:9px 13px 4px}
   .dir{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:11.5px;
     padding:7px 13px;border:0;border-bottom:1px solid var(--rule-faint);background:#f4f7fa;
     color:var(--blueprint);cursor:pointer;text-transform:none;letter-spacing:0}
@@ -97,19 +113,19 @@
 <div id="app">
 
   <aside id="left">
-    <div class="sec" style="border-bottom:1px solid var(--rule)">
-      <h2>Files</h2>
+    <div class="sec" style="border-bottom:1px solid var(--rule);padding-bottom:9px">
+      <h2>Location</h2>
       <div class="btns">
-        <button class="ghost row" id="bUp" disabled>&#8593; Up</button>
-        <button class="ghost row" id="bFolder">Folder…</button>
-      </div>
-      <div class="btns">
+        <button class="ghost row" id="bFolder">Add folder…</button>
         <button class="ghost row" id="bAddFiles">Add files…</button>
-        <button class="ghost row" id="bLocal">Local…</button>
       </div>
     </div>
-    <div id="folderName" class="folder hidden"></div>
-    <div id="fileList" class="grow"><div class="none">No folder open.</div></div>
+    <div id="crumbs" class="crumbs hidden"></div>
+    <div id="tree"><div class="none">No folder yet.</div></div>
+    <div id="fileList" class="grow"><div class="none">Files appear here.</div></div>
+    <div class="sec" style="border-top:1px solid var(--rule)">
+      <button class="ghost" id="bLocal">Local file…</button>
+    </div>
   </aside>
 
   <main id="stage">
@@ -196,7 +212,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 7 — 2 Aug 2026";
+const BUILD = "build 8 — 2 Aug 2026";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -847,7 +863,7 @@ function initTokenClient(){
       $("bConnect").textContent="Signed in";
       $("bConnect").disabled=true;
       api("/oauth2/v3/userinfo").then(u=>{ if (u&&u.email) store.set("hint",u.email); }).catch(()=>{});
-      if (S.folderId) openFolder(S.folderId,true);
+      if (S.folderId) selectFolder(S.folderId,true);
       else { status("Signed in — choose a folder","ok"); openPicker(true); }
     },
     error_callback:err=>tokenFailed(err&&err.type||"cancelled")
@@ -900,10 +916,11 @@ function openPicker(foldersOnly){
     .setCallback(data=>{
       if (data.action!==google.picker.Action.PICKED) return;
       const doc=data.docs[0];
-      if (doc.mimeType===FOLDER_MIME){ store.del("file"); openFolder(doc.id,true); }
+      if (doc.mimeType===FOLDER_MIME){ store.del("file"); kidCache.clear(); selectFolder(doc.id,true); }
       else {
         const picked=data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes,mimeType:d.mimeType}));
-        if (S.folderId) openFolder(S.folderId,false);   // re-list; the picks are granted now
+        kidCache.clear();
+        if (S.folderId) selectFolder(S.folderId,false);   // re-list; the picks are granted now
         else renderList(picked,true);
       }
     });
@@ -913,53 +930,122 @@ function openPicker(foldersOnly){
 }
 $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
 
-/* ---- folder navigation -------------------------------------------------
-   drive.file only exposes what the user has handed the app, so "up" works
-   as far as the parent chain stays accessible and stops politely when it
-   does not.  Everything the API returns is listed, data files first, so a
-   missing file is visible rather than silently filtered away.            */
-async function listAll(id){
+/* ---- folder navigation: breadcrumb + lazy tree + file list --------------
+   drive.file only exposes what the user handed the app, so the tree is
+   rooted at the highest ancestor still readable and stops there.         */
+const metaCache=new Map(), kidCache=new Map();
+async function meta(id){
+  if (metaCache.has(id)) return metaCache.get(id);
+  const m=await api("/drive/v3/files/"+id+"?supportsAllDrives=true&fields=id,name,parents,mimeType");
+  metaCache.set(id,m); return m;
+}
+async function children(id,force){
+  if (!force&&kidCache.has(id)) return kidCache.get(id);
   const out=[]; let page="";
   do{
     const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
     const r=await api("/drive/v3/files?q="+q+"&pageSize=200&orderBy=folder,name"+
       "&fields=nextPageToken,files(id,name,mimeType,size)"+
       "&supportsAllDrives=true&includeItemsFromAllDrives=true"+(page?"&pageToken="+page:""));
-    out.push(...(r.files||[]));
-    page=r.nextPageToken||"";
+    out.push(...(r.files||[])); page=r.nextPageToken||"";
   } while(page);
+  kidCache.set(id,out); return out;
+}
+async function chainOf(id){                      // outermost readable ancestor first
+  const out=[]; let cur=id, guard=0;
+  while (cur&&guard++<14){
+    let m; try{ m=await meta(cur); }catch(e){ break; }
+    out.unshift({id:m.id,name:m.name});
+    cur=(m.parents&&m.parents[0])||null;
+  }
   return out;
 }
-async function openFolder(id,autoOpen){
-  if (!S.token){ connect(()=>openFolder(id,autoOpen)); return; }
-  status("Opening folder…");
+
+let TREE=null, SEL=null;
+const mkNode=(id,name)=>({id,name,kids:null,open:false});
+function findNode(n,id){
+  if (!n) return null;
+  if (n.id===id) return n;
+  for (const k of (n.kids||[])){ const f=findNode(k,id); if (f) return f; }
+  return null;
+}
+function drawTree(){
+  const box=$("tree"); box.innerHTML="";
+  if (!TREE){ box.innerHTML='<div class="none">No folder yet.</div>'; return; }
+  (function rec(n,depth){
+    const b=document.createElement("button");
+    b.className="node"+(n.id===SEL?" sel":"");
+    b.style.paddingLeft=(8+depth*13)+"px";
+    const car=document.createElement("span");
+    car.className="car"; car.textContent=n.open?"\u25BE":"\u25B8";
+    car.addEventListener("click",ev=>{ ev.stopPropagation(); toggle(n); });
+    const nm=document.createElement("span");
+    nm.className="nm"; nm.textContent=n.name;
+    b.appendChild(car); b.appendChild(nm);
+    b.addEventListener("click",()=>selectFolder(n.id,false));
+    box.appendChild(b);
+    if (n.open) for (const k of (n.kids||[])) rec(k,depth+1);
+  })(TREE,0);
+}
+async function toggle(n){
+  n.open=!n.open;
+  if (n.open&&n.kids===null){
+    try{
+      const kids=(await children(n.id)).filter(f=>f.mimeType===FOLDER_MIME);
+      n.kids=kids.map(k=>mkNode(k.id,k.name));
+    }catch(e){ n.kids=[]; }
+  }
+  drawTree();
+}
+function drawCrumbs(chain){
+  const box=$("crumbs"); box.innerHTML="";
+  box.classList.remove("hidden");
+  chain.forEach((c,i)=>{
+    if (i) { const s=document.createElement("span"); s.className="sep"; s.textContent="\u203A"; box.appendChild(s); }
+    const b=document.createElement("button");
+    b.textContent=c.name;
+    if (i===chain.length-1) b.className="here";
+    b.addEventListener("click",()=>selectFolder(c.id,false));
+    box.appendChild(b);
+  });
+}
+async function selectFolder(id,autoOpen){
+  if (!S.token){ connect(()=>selectFolder(id,autoOpen)); return; }
+  status("Opening…");
   try{
-    let meta={name:"folder",parents:null};
-    try{ meta=await api("/drive/v3/files/"+id+"?supportsAllDrives=true&fields=id,name,parents"); }catch(e){}
-    S.folderId=id; S.folderName=meta.name||"folder";
-    S.parentId=(meta.parents&&meta.parents[0])||null;
+    SEL=id; S.folderId=id;
     store.set("folder",id);
     history.replaceState(null,"","#folder="+id);
-    $("folderName").textContent=S.folderName;
-    $("folderName").classList.remove("hidden");
-    $("bUp").disabled=!S.parentId;
+    const chain=await chainOf(id);
+    if (chain.length) S.folderName=chain[chain.length-1].name;
+    drawCrumbs(chain);
+    /* grow the tree along the chain so the selection is visible in context */
+    if (!TREE||!findNode(TREE,chain[0].id)) TREE=mkNode(chain[0].id,chain[0].name);
+    let n=TREE;
+    for (let i=1;i<chain.length;i++){
+      if (n.kids===null){
+        try{ n.kids=(await children(n.id)).filter(f=>f.mimeType===FOLDER_MIME).map(k=>mkNode(k.id,k.name)); }
+        catch(e){ n.kids=[]; }
+      }
+      n.open=true;
+      let nx=n.kids.find(k=>k.id===chain[i].id);
+      if (!nx){ nx=mkNode(chain[i].id,chain[i].name); n.kids.push(nx); }
+      n=nx;
+    }
+    const cur=findNode(TREE,id);
+    if (cur&&cur.kids===null){
+      try{ cur.kids=(await children(id)).filter(f=>f.mimeType===FOLDER_MIME).map(k=>mkNode(k.id,k.name)); cur.open=true; }
+      catch(e){ cur.kids=[]; }
+    }
+    drawTree();
     $("bShare").classList.remove("hidden");
-    renderList(await listAll(id),autoOpen);
-  }catch(e){
-    status("cannot open that folder: "+e.message,"err");
-  }
+    renderList(await children(id,true),autoOpen);
+  }catch(e){ status("cannot open that folder: "+e.message,"err"); }
 }
 function renderList(items,autoOpen){
   const box=$("fileList"); box.innerHTML="";
-  const dirs =items.filter(f=>f.mimeType===FOLDER_MIME);
   const data =items.filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
   const other=items.filter(f=>f.mimeType!==FOLDER_MIME&&!DATA_EXT.test(f.name));
-  for (const d of dirs){
-    const b=document.createElement("button");
-    b.className="dir"; b.textContent="\u25B8 "+d.name;
-    b.addEventListener("click",()=>openFolder(d.id,false));
-    box.appendChild(b);
-  }
   const want=store.get("file");
   let target=null;
   for (const f of data){
@@ -984,13 +1070,11 @@ function renderList(items,autoOpen){
       box.appendChild(b);
     }
   }
-  if (!items.length) box.innerHTML='<div class="none">Nothing visible here. Use <b>Add files…</b> to grant individual files.</div>';
-  status(data.length+" data file"+(data.length===1?"":"s")+
-         (dirs.length?", "+dirs.length+" folder"+(dirs.length===1?"":"s"):"")+
-         (other.length?", "+other.length+" other":""),"ok");
+  if (!data.length&&!other.length)
+    box.innerHTML='<div class="none">No files here. Use <b>Add files…</b> to grant individual files.</div>';
+  status(data.length+" data file"+(data.length===1?"":"s")+(other.length?", "+other.length+" other":""),"ok");
   if (autoOpen&&target) target.click();
 }
-$("bUp").addEventListener("click",()=>{ if (S.parentId) openFolder(S.parentId,false); });
 $("bAddFiles").addEventListener("click",()=>connect(()=>openPicker(false)));
 
 async function loadDriveFile(f){
@@ -1029,8 +1113,6 @@ $("bShare").addEventListener("click",()=>{
   const fromHash=p.get("folder");
   if (fromHash){ S.folderId=fromHash; store.set("folder",fromHash); }
   else S.folderId=store.get("folder");
-  if (S.folderId){ $("folderName").textContent="folder "+S.folderId.slice(0,14)+"…";
-                   $("folderName").classList.remove("hidden"); }
 })();
 (function waitPicker(){ if (window.gapi) gapi.load("picker",()=>{S.pickerReady=true;}); else setTimeout(waitPicker,250); })();
 (function waitGis(n){
