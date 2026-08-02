@@ -235,7 +235,7 @@ const S = {
   h5:null, fs:null, tmpPath:null, file:null, fileName:"",
   candidates:[], vectors:[],
   dims:[1,1,1], strides:[1,1,1], values:null,
-  names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null],
+  names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null], flip:[false,false,false],
   idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
   cmap:"whitejet7", invert:false, epoch:0,
   token:null, pickerReady:false, folderId:null
@@ -344,10 +344,16 @@ function guessAxes(){
 }
 function applyAxis(d){
   const sel=$(["selX","selY","selZ"][d]).value;
-  if (!sel){ S.axes[d]=null; S.names[d]=["dim1","dim2","dim3"][d]; return; }
+  const reset=()=>{ S.axes[d]=null; S.flip[d]=false; S.names[d]=["dim1","dim2","dim3"][d]; S.epoch++; };
+  if (!sel){ reset(); return; }
   const e=S.vectors.find(v=>v.path===sel);
-  if (!e||e.count!==S.dims[d]){ S.axes[d]=null; S.names[d]=["dim1","dim2","dim3"][d]; return; }
-  try{ S.axes[d]=readFlat(e); S.names[d]=e.path.split("/").pop(); }catch(err){ S.axes[d]=null; }
+  if (!e||e.count!==S.dims[d]){ reset(); return; }
+  try{
+    const v=readFlat(e);
+    S.axes[d]=v; S.names[d]=e.path.split("/").pop();
+    S.flip[d]=v.length>1 && v[v.length-1]<v[0];   // stored descending -> draw flipped
+    S.epoch++;
+  }catch(err){ reset(); }
 }
 const axVal=(d,i)=>{ const v=S.axes[d]; return (v&&v.length===S.dims[d])?v[i]:i+1; };
 const axName=d=>S.names[d];
@@ -355,7 +361,8 @@ function axExtent(d){
   const n=S.dims[d], v=S.axes[d];
   if (!v||n<2||v.length!==n) return [-0.5,n-0.5];
   const a=v[0], b=v[n-1], s=(b-a)/(n-1);
-  return [a-s/2,b+s/2];
+  const lo=a-s/2, hi=b+s/2;
+  return lo<=hi?[lo,hi]:[hi,lo];
 }
 function niceTicks(lo,hi,target){
   if (!isFinite(lo)||!isFinite(hi)||lo===hi) return [lo];
@@ -442,10 +449,16 @@ function resize(){
 }
 
 /* ---- pixel mappings, shared by panels and their strips ---- */
-const pxOf = (r,n,i) => r.x + (i+0.5)/n*r.w;             // horizontal, index → px
-const pyOf = (r,n,j) => r.y + r.h - (j+0.5)/n*r.h;       // vertical,  index → px
-const ixOf = (r,n,x) => Math.max(0,Math.min(n-1,Math.floor((x-r.x)/r.w*n)));
-const iyOf = (r,n,y) => Math.max(0,Math.min(n-1,Math.floor((r.y+r.h-y)/r.h*n)));
+/* index -> fraction along the axis measured from its low-value end, so a
+   descending axis vector is drawn flipped and values always increase
+   upward and to the right, exactly as MATLAB's imagesc does.            */
+const frac   = (d,i) => { const t=(i+0.5)/S.dims[d]; return S.flip[d]?1-t:t; };
+const unfrac = (d,t) => { const u=S.flip[d]?1-t:t;
+                          return Math.max(0,Math.min(S.dims[d]-1,Math.floor(u*S.dims[d]))); };
+const pxOf = (r,d,i) => r.x + frac(d,i)*r.w;
+const pyOf = (r,d,i) => r.y + r.h - frac(d,i)*r.h;
+const ixOf = (r,d,x) => unfrac(d,(x-r.x)/r.w);
+const iyOf = (r,d,y) => unfrac(d,(r.y+r.h-y)/r.h);
 
 /* ---- slice rendering into offscreen canvases ---- */
 const off={};
@@ -459,10 +472,12 @@ function buildSlice(p){
   const px=o.img.data, lut=activeLUT();
   const sh=S.strides[p.h], sv=S.strides[p.v], base=S.idx[p.fix]*S.strides[p.fix];
   const k=255/((S.vmax-S.vmin)||1);
+  const fh=S.flip[p.h], fv=S.flip[p.v];
   for (let j=0;j<nV;j++){
     const rb=base+j*sv;
-    let q=(nV-1-j)*nH*4;
-    for (let i=0;i<nH;i++,q+=4){
+    const row=(fv?j:nV-1-j)*nH*4;
+    for (let i=0;i<nH;i++){
+      const q=row+(fh?nH-1-i:i)*4;
       const val=S.values[rb+i*sh];
       if (val!==val){ px[q]=214;px[q+1]=219;px[q+2]=226;px[q+3]=255; continue; }
       let t=(val-S.vmin)*k; t=t<0?0:t>255?255:t;
@@ -531,7 +546,7 @@ function drawPanel(p){
   const [xl,xh]=axExtent(p.h), [yl,yh]=axExtent(p.v);
   ticksX(r,xl,xh,true); ticksY(r,yl,yh,true);
   labelX(r,axName(p.h)); labelY(r,axName(p.v));
-  const cx=pxOf(r,nH,S.idx[p.h]), cy=pyOf(r,nV,S.idx[p.v]);
+  const cx=pxOf(r,p.h,S.idx[p.h]), cy=pyOf(r,p.v,S.idx[p.v]);
   dashed(r.x,cy,r.x+r.w,cy, HOT&&HOT.panel===p.key&&HOT.mode==="h");
   dashed(cx,r.y,cx,r.y+r.h, HOT&&HOT.panel===p.key&&HOT.mode==="v");
   ctx.fillStyle="#16202e"; ctx.font="10px "+MONO;
@@ -563,13 +578,13 @@ function drawStrip(s){
   if (s.dir==="h"){
     for (let i=0;i<n;i++){
       const v=y[i]; if (v!==v){pen=false;continue;}
-      const X=pxOf(pr,n,i), Y=r.y+r.h-(v-lo)/(hi-lo)*r.h;
+      const X=pxOf(pr,s.ax,i), Y=r.y+r.h-(v-lo)/(hi-lo)*r.h;
       pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
     }
   } else {
     for (let i=0;i<n;i++){
       const v=y[i]; if (v!==v){pen=false;continue;}
-      const Y=pyOf(pr,n,i), X=r.x+r.w-(v-lo)/(hi-lo)*r.w;  // value grows leftward
+      const Y=pyOf(pr,s.ax,i), X=r.x+r.w-(v-lo)/(hi-lo)*r.w;  // value grows leftward
       pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
     }
   }
@@ -577,13 +592,13 @@ function drawStrip(s){
 
   const hot = HOT&&HOT.strip===s.key;
   if (s.dir==="h"){
-    const X=pxOf(pr,n,S.idx[s.ax]);
+    const X=pxOf(pr,s.ax,S.idx[s.ax]);
     ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=hot?2:1.1;
     ctx.strokeStyle=hot?"#a82d27":"#16202e";
     ctx.beginPath(); ctx.moveTo(X,r.y); ctx.lineTo(X,r.y+r.h); ctx.stroke(); ctx.restore();
     ticksY(r,lo,hi,true,2);
   } else {
-    const Y=pyOf(pr,n,S.idx[s.ax]);
+    const Y=pyOf(pr,s.ax,S.idx[s.ax]);
     ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=hot?2:1.1;
     ctx.strokeStyle=hot?"#a82d27":"#16202e";
     ctx.beginPath(); ctx.moveTo(r.x,Y); ctx.lineTo(r.x+r.w,Y); ctx.stroke(); ctx.restore();
@@ -666,7 +681,7 @@ function hit(x,y){
     const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
     if (nH<2||nV<2) continue;
     if (x>=r.x-NEAR&&x<=r.x+r.w+NEAR&&y>=r.y-NEAR&&y<=r.y+r.h+NEAR){
-      const cx=pxOf(r,nH,S.idx[p.h]), cy=pyOf(r,nV,S.idx[p.v]);
+      const cx=pxOf(r,p.h,S.idx[p.h]), cy=pyOf(r,p.v,S.idx[p.v]);
       const dv=Math.abs(x-cx), dh=Math.abs(y-cy);
       if (dv<NEAR&&dv<=dh) return {panel:p.key,mode:"v"};
       if (dh<NEAR)         return {panel:p.key,mode:"h"};
@@ -677,8 +692,8 @@ function hit(x,y){
     const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
     if (n<2) continue;
     if (x<r.x-NEAR||x>r.x+r.w+NEAR||y<r.y-NEAR||y>r.y+r.h+NEAR) continue;
-    if (s.dir==="h"){ if (Math.abs(x-pxOf(pr,n,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"v"}; }
-    else            { if (Math.abs(y-pyOf(pr,n,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"h"}; }
+    if (s.dir==="h"){ if (Math.abs(x-pxOf(pr,s.ax,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"v"}; }
+    else            { if (Math.abs(y-pyOf(pr,s.ax,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"h"}; }
   }
   const c=L.cbar;
   if (x>=c.x-4&&x<=c.x+c.w+4&&y>=c.y&&y<=c.y+c.h) return {cbar:true};
@@ -688,11 +703,11 @@ function hit(x,y){
 function applyDrag(t,x,y){
   if (t.panel){
     const p=PAN.find(q=>q.key===t.panel), r=L[p.key];
-    if (t.mode==="v"||t.mode==="both") S.idx[p.h]=ixOf(r,S.dims[p.h],x);
-    if (t.mode==="h"||t.mode==="both") S.idx[p.v]=iyOf(r,S.dims[p.v],y);
+    if (t.mode==="v"||t.mode==="both") S.idx[p.h]=ixOf(r,p.h,x);
+    if (t.mode==="h"||t.mode==="both") S.idx[p.v]=iyOf(r,p.v,y);
   } else if (t.strip){
     const s=STRIP.find(q=>q.key===t.strip), pr=L[s.ref], n=S.dims[s.ax];
-    S.idx[s.ax] = s.dir==="h" ? ixOf(pr,n,x) : iyOf(pr,n,y);
+    S.idx[s.ax] = s.dir==="h" ? ixOf(pr,s.ax,x) : iyOf(pr,s.ax,y);
   }
   draw();
 }
