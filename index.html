@@ -6,135 +6,61 @@
 <title>Explore 3D — Ilani group</title>
 <style>
   :root{
-    --paper:#e9edf2;
-    --surface:#ffffff;
-    --ink:#16202e;
-    --muted:#5d6b7d;
-    --rule:#c5cedb;
-    --rule-faint:#dde3ea;
-    --blueprint:#2b4a7d;
-    --pass:#146b52;
-    --fail:#a82d27;
-    --warn:#96610a;
+    --paper:#e9edf2; --surface:#ffffff; --ink:#16202e; --muted:#5d6b7d;
+    --rule:#c5cedb; --rule-faint:#dde3ea; --blueprint:#2b4a7d;
+    --pass:#146b52; --fail:#a82d27;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
+  html,body{margin:0;padding:0}
   body{
     font-family:var(--sans); color:var(--ink); line-height:1.45;
     background-color:var(--paper);
-    background-image:
-      linear-gradient(var(--rule-faint) 1px, transparent 1px),
-      linear-gradient(90deg, var(--rule-faint) 1px, transparent 1px);
-    background-size:22px 22px;
-    padding:14px 14px 40px;
+    background-image:linear-gradient(var(--rule-faint) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--rule-faint) 1px,transparent 1px);
+    background-size:22px 22px; padding:12px 12px 28px;
   }
-  .wrap{max-width:1560px;margin:0 auto}
-
-  /* ---- bars ---- */
-  .bar{
-    background:var(--surface); border:1px solid var(--rule);
-    padding:10px 14px; margin-bottom:10px;
-    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-  }
-  .bar.title{border-color:var(--ink); padding:12px 16px}
-  h1{
-    font-family:var(--mono); font-size:15px; font-weight:600;
-    letter-spacing:.16em; text-transform:uppercase; margin:0;
-  }
-  .sub{font-size:12.5px;color:var(--muted);margin-left:4px}
+  .wrap{max-width:1800px;margin:0 auto}
+  .bar{background:var(--surface);border:1px solid var(--rule);padding:8px 12px;
+       margin-bottom:8px;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+  .bar.title{border-color:var(--ink)}
+  h1{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.16em;
+     text-transform:uppercase;margin:0}
+  .sub{font-size:12px;color:var(--muted)}
   .spacer{margin-left:auto}
-
-  .tag{
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.12em;
-    text-transform:uppercase; color:var(--muted);
-  }
-
-  button{
-    font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
-    padding:7px 13px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer;
-  }
+  .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  button{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+         padding:6px 12px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
   button.ghost{background:transparent;color:var(--ink)}
-  button.mini{padding:4px 9px;font-size:10.5px}
+  button.mini{padding:4px 8px;font-size:10px}
   button:disabled{opacity:.32;cursor:not-allowed}
   button:hover:not(:disabled){background:var(--blueprint);border-color:var(--blueprint);color:#fff}
   button:focus-visible{outline:2px solid var(--blueprint);outline-offset:2px}
-
-  select,input[type=text],input[type=number]{
-    font-family:var(--mono); font-size:12px; padding:5px 7px;
-    border:1px solid var(--rule); background:var(--paper); color:var(--ink);
-  }
+  select,input[type=number]{font-family:var(--mono);font-size:11.5px;padding:4px 6px;
+         border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
   select:focus,input:focus{outline:2px solid var(--blueprint);outline-offset:-1px;background:#fff}
-  input[type=number]{width:104px}
-  label.f{display:flex;align-items:center;gap:6px}
-  label.f > .tag{white-space:nowrap}
-
-  #status{font-size:12.5px;color:var(--muted)}
-  #status.err{color:var(--fail)}
-  #status.ok{color:var(--pass)}
-
-  /* ---- file chips ---- */
-  #files{display:flex;flex-wrap:wrap;gap:7px}
-  .chip{
-    font-family:var(--mono); font-size:11.5px; padding:5px 10px;
-    border:1px solid var(--rule); background:var(--paper); cursor:pointer; color:var(--ink);
-  }
+  input[type=number]{width:98px}
+  label.f{display:flex;align-items:center;gap:5px}
+  #status{font-size:12px;color:var(--muted)}
+  #status.err{color:var(--fail)} #status.ok{color:var(--pass)}
+  #files{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border:1px solid var(--rule);
+        background:var(--paper);cursor:pointer;color:var(--ink)}
   .chip:hover{border-color:var(--blueprint);color:var(--blueprint)}
   .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .chip .sz{color:var(--muted);margin-left:7px;font-size:10.5px}
+  .chip .sz{color:var(--muted);margin-left:6px;font-size:10px}
   .chip.on .sz{color:#9fb0c4}
-
-  /* ---- readout: the instrument strip ---- */
-  .readout{
-    background:var(--ink); color:#dbe6f2; border:1px solid var(--ink);
-    padding:11px 16px; margin-bottom:10px;
-    display:flex; flex-wrap:wrap; gap:26px; align-items:baseline;
-    font-family:var(--mono);
-  }
-  .readout .cell{display:flex;flex-direction:column;gap:1px}
-  .readout .k{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#7f93ab}
-  .readout .v{font-size:17px;font-variant-numeric:tabular-nums;color:#fff}
-  .readout .v.big{font-size:20px;color:#8fd3b6}
-
-  /* ---- sliders ---- */
-  .sliders{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:10px}
-  .sl{background:var(--surface);border:1px solid var(--rule);padding:8px 12px}
-  .sl .row{display:flex;align-items:baseline;gap:8px}
-  .sl .nm{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-  .sl .vl{font-family:var(--mono);font-size:12px;color:var(--blueprint);margin-left:auto;font-variant-numeric:tabular-nums}
-  .sl input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--blueprint)}
-
-  /* ---- panels ---- */
-  .panels,.cuts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
-  .pan{background:var(--surface);border:1px solid var(--rule);padding:8px}
-  .pan h3{
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
-    margin:0 0 6px;color:var(--muted);display:flex;gap:8px;align-items:baseline;
-  }
-  .pan h3 em{font-style:normal;color:var(--blueprint);margin-left:auto;text-transform:none;letter-spacing:.02em}
-  canvas{display:block;width:100%;touch-action:none}
-  .pan.img canvas{cursor:crosshair}
+  #stage{background:var(--surface);border:1px solid var(--rule);padding:0;position:relative}
+  #cv{display:block;width:100%;touch-action:none}
   .hidden{display:none!important}
-
-  .empty{
-    background:var(--surface);border:1px dashed var(--rule);
-    padding:44px 24px;text-align:center;color:var(--muted);font-size:14px;
-  }
+  .empty{background:var(--surface);border:1px dashed var(--rule);padding:48px 24px;
+         text-align:center;color:var(--muted);font-size:14px}
   .empty b{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--ink);margin-bottom:8px}
-
-  footer{font-size:11.5px;color:var(--muted);margin-top:16px;text-align:center}
-  footer code{font-family:var(--mono)}
-
-  body.drag::after{
-    content:"Drop a .mat file";position:fixed;inset:0;background:rgba(43,74,125,.9);color:#fff;
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:20px;letter-spacing:.14em;text-transform:uppercase;z-index:99;
-  }
-  @media (max-width:1000px){
-    .panels,.cuts,.sliders{grid-template-columns:1fr}
-  }
+           text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+  body.drag::after{content:"Drop a .mat file";position:fixed;inset:0;background:rgba(43,74,125,.9);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-size:20px;letter-spacing:.14em;text-transform:uppercase;z-index:99}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -143,7 +69,7 @@
 
   <div class="bar title">
     <h1>Explore 3D</h1>
-    <span class="sub">orthogonal slices &amp; linecuts through a data cube</span>
+    <span class="sub">drag the dashed lines to move the slices</span>
     <span class="spacer"></span>
     <span id="status">Loading HDF5 engine…</span>
   </div>
@@ -159,10 +85,7 @@
     <button class="ghost mini hidden" id="bShare">Copy folder link</button>
   </div>
 
-  <div class="bar hidden" id="filesBar">
-    <span class="tag">Files</span>
-    <div id="files"></div>
-  </div>
+  <div class="bar hidden" id="filesBar"><span class="tag">Files</span><div id="files"></div></div>
 
   <div class="bar hidden" id="varBar">
     <label class="f"><span class="tag">Data</span><select id="selData"></select></label>
@@ -176,12 +99,13 @@
   <div class="bar hidden" id="dispBar">
     <label class="f"><span class="tag">Colormap</span>
       <select id="selCmap">
-        <option value="viridis">viridis</option>
         <option value="parula">parula</option>
+        <option value="viridis">viridis</option>
         <option value="inferno">inferno</option>
         <option value="turbo">turbo</option>
         <option value="jet">jet</option>
         <option value="rdbu">red–white–blue</option>
+        <option value="purple">white–purple–black</option>
         <option value="gray">gray</option>
       </select>
     </label>
@@ -191,53 +115,26 @@
     <button class="ghost mini" id="bAutoAll">Auto · volume</button>
     <button class="ghost mini" id="bAutoSlice">Auto · slice</button>
     <button class="ghost mini" id="bAutoPct">Auto · 1–99%</button>
+    <span class="spacer"></span>
+    <span class="tag">drag colorbar to shift · wheel to scale</span>
   </div>
 
-  <div class="readout hidden" id="readout">
-    <div class="cell"><span class="k" id="kX">x</span><span class="v" id="rX">—</span></div>
-    <div class="cell"><span class="k" id="kY">y</span><span class="v" id="rY">—</span></div>
-    <div class="cell"><span class="k" id="kZ">z</span><span class="v" id="rZ">—</span></div>
-    <div class="cell"><span class="k" id="kV">value</span><span class="v big" id="rV">—</span></div>
-    <div class="cell"><span class="k">index</span><span class="v" id="rI">—</span></div>
-  </div>
-
-  <div class="sliders hidden" id="sliders">
-    <div class="sl" id="slx"><div class="row"><span class="nm" id="slxN">x</span><span class="vl" id="slxV"></span></div><input type="range" id="slxR" min="0" max="0" value="0"></div>
-    <div class="sl" id="sly"><div class="row"><span class="nm" id="slyN">y</span><span class="vl" id="slyV"></span></div><input type="range" id="slyR" min="0" max="0" value="0"></div>
-    <div class="sl" id="slz"><div class="row"><span class="nm" id="slzN">z</span><span class="vl" id="slzV"></span></div><input type="range" id="slzR" min="0" max="0" value="0"></div>
-  </div>
-
-  <div class="panels hidden" id="panels">
-    <div class="pan img" id="pan-xy"><h3><span id="ttl-xy">X – Y</span><em id="fix-xy"></em></h3><canvas id="cv-xy"></canvas></div>
-    <div class="pan img" id="pan-zy"><h3><span id="ttl-zy">Z – Y</span><em id="fix-zy"></em></h3><canvas id="cv-zy"></canvas></div>
-    <div class="pan img" id="pan-xz"><h3><span id="ttl-xz">X – Z</span><em id="fix-xz"></em></h3><canvas id="cv-xz"></canvas></div>
-  </div>
-
-  <div class="cuts hidden" id="cuts">
-    <div class="pan" id="cut-x"><h3><span id="ttl-cx">cut along x</span></h3><canvas id="cv-cx"></canvas></div>
-    <div class="pan" id="cut-y"><h3><span id="ttl-cy">cut along y</span></h3><canvas id="cv-cy"></canvas></div>
-    <div class="pan" id="cut-z"><h3><span id="ttl-cz">cut along z</span></h3><canvas id="cv-cz"></canvas></div>
-  </div>
+  <div id="stage" class="hidden"><canvas id="cv"></canvas></div>
 
   <div class="empty" id="empty">
     <b>No data loaded</b>
     Connect Drive and open a shared folder, or drop a <code>.mat</code> file anywhere on this page.<br>
     MATLAB files must be saved with <code>-v7.3</code> so they are HDF5.
   </div>
-
-  <footer>
-    Ilani group · slices are drawn by direct pixel writes, so dragging stays responsive on large cubes.
-  </footer>
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
 <script type="module">
-/* ============================================================
-   Configuration — Google Cloud project "Lab Data"
-   These values are public by design; they are constrained by the
-   authorised-origin and HTTP-referrer restrictions in the console.
-   ============================================================ */
+/* ===========================================================
+   Google Cloud project "Lab Data".  These values are public by
+   design and constrained by origin / referrer restrictions.
+   =========================================================== */
 const CLIENT_ID = "498900799605-2uhlfk14fjr7dkfppv8qlhsuh1p9g80g.apps.googleusercontent.com";
 const API_KEY   = "AIzaSyDNh7rxTC3pNKR9Ye3xOsBJYwyBH7pKDh8";
 const APP_ID    = "498900799605";
@@ -245,762 +142,743 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-/* ============================================================
-   Small helpers
-   ============================================================ */
 const $ = id => document.getElementById(id);
-const status = (msg, cls) => { const e = $("status"); e.textContent = msg; e.className = cls || ""; };
+const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
 function fmt(v){
-  if (v === null || v === undefined || !isFinite(v)) return "—";
-  const a = Math.abs(v);
-  if (a === 0) return "0";
-  if (a >= 1e5 || a < 1e-3) return v.toExponential(3);
-  return String(+v.toPrecision(5));
+  if (v===null||v===undefined||!isFinite(v)) return "—";
+  const a=Math.abs(v);
+  if (a===0) return "0";
+  if (a>=1e5||a<1e-3) return v.toExponential(4);
+  return String(+v.toPrecision(6));
 }
-function fmtShort(v){
-  if (!isFinite(v)) return "—";
-  const a = Math.abs(v);
-  if (a === 0) return "0";
-  if (a >= 1e4 || a < 1e-2) return v.toExponential(1);
+function fmtT(v){
+  if (!isFinite(v)) return "";
+  const a=Math.abs(v);
+  if (a===0) return "0";
+  if (a>=1e4||a<1e-2) return v.toExponential(1);
   return String(+v.toPrecision(3));
 }
 function fmtBytes(n){
-  if (n < 1024) return n + " B";
-  if (n < 1048576) return (n/1024).toFixed(0) + " KB";
-  if (n < 1073741824) return (n/1048576).toFixed(1) + " MB";
-  return (n/1073741824).toFixed(2) + " GB";
+  if (n<1024) return n+" B";
+  if (n<1048576) return (n/1024).toFixed(0)+" KB";
+  if (n<1073741824) return (n/1048576).toFixed(1)+" MB";
+  return (n/1073741824).toFixed(2)+" GB";
 }
 
-/* ============================================================
-   Colormaps — anchor colours, linearly interpolated into a LUT
-   ============================================================ */
+/* ---------------- colormaps ---------------- */
 const ANCHORS = {
-  viridis: [[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]],
-  parula:  [[53,42,135],[15,92,221],[18,125,216],[7,156,207],[21,177,180],[89,189,140],[165,190,107],[225,185,82],[252,206,46],[249,251,14]],
-  inferno: [[0,0,4],[22,11,57],[66,10,104],[106,23,110],[147,38,103],[188,55,84],[221,81,58],[243,120,25],[252,165,10],[252,255,164]],
-  turbo:   [[48,18,59],[70,107,227],[54,166,249],[26,217,199],[106,242,124],[184,242,50],[249,168,37],[251,109,20],[206,42,4],[122,4,3]],
-  jet:     [[0,0,143],[0,0,255],[0,127,255],[0,255,255],[127,255,127],[255,255,0],[255,127,0],[255,0,0],[180,0,0],[128,0,0]],
-  rdbu:    [[33,51,140],[70,100,180],[120,160,215],[190,215,235],[240,245,248],[250,225,210],[240,160,130],[215,95,70],[178,30,35],[120,0,20]],
-  gray:    [[0,0,0],[255,255,255]]
+  parula:[[53,42,135],[15,92,221],[18,125,216],[7,156,207],[21,177,180],[89,189,140],[165,190,107],[225,185,82],[252,206,46],[249,251,14]],
+  viridis:[[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]],
+  inferno:[[0,0,4],[22,11,57],[66,10,104],[106,23,110],[147,38,103],[188,55,84],[221,81,58],[243,120,25],[252,165,10],[252,255,164]],
+  turbo:[[48,18,59],[70,107,227],[54,166,249],[26,217,199],[106,242,124],[184,242,50],[249,168,37],[251,109,20],[206,42,4],[122,4,3]],
+  jet:[[0,0,143],[0,0,255],[0,127,255],[0,255,255],[127,255,127],[255,255,0],[255,127,0],[255,0,0],[180,0,0],[128,0,0]],
+  rdbu:[[33,51,140],[70,100,180],[120,160,215],[190,215,235],[240,245,248],[250,225,210],[240,160,130],[215,95,70],[178,30,35],[120,0,20]],
+  purple:[[255,255,255],[243,231,247],[226,201,238],[203,166,226],[176,128,211],[146,90,190],[112,58,160],[78,34,122],[46,16,78],[10,4,24]],
+  gray:[[0,0,0],[255,255,255]]
 };
-const LUT = {};
-for (const [name, pts] of Object.entries(ANCHORS)){
-  const lut = new Uint8Array(256*3);
+const LUT={};
+for (const [n,pts] of Object.entries(ANCHORS)){
+  const l=new Uint8Array(768);
   for (let i=0;i<256;i++){
-    const t = i/255*(pts.length-1);
-    const a = Math.min(pts.length-2, Math.floor(t));
-    const f = t-a, p = pts[a], q = pts[a+1];
-    lut[i*3]   = p[0]+(q[0]-p[0])*f;
-    lut[i*3+1] = p[1]+(q[1]-p[1])*f;
-    lut[i*3+2] = p[2]+(q[2]-p[2])*f;
+    const t=i/255*(pts.length-1), a=Math.min(pts.length-2,Math.floor(t)), f=t-a;
+    const p=pts[a], q=pts[a+1];
+    l[i*3]=p[0]+(q[0]-p[0])*f; l[i*3+1]=p[1]+(q[1]-p[1])*f; l[i*3+2]=p[2]+(q[2]-p[2])*f;
   }
-  LUT[name] = lut;
+  LUT[n]=l;
 }
 function activeLUT(){
-  const base = LUT[S.cmap] || LUT.viridis;
-  if (!S.invert) return base;
-  if (!S._inv || S._invName !== S.cmap){
-    const out = new Uint8Array(768);
-    for (let i=0;i<256;i++){ const j=255-i; out[i*3]=base[j*3]; out[i*3+1]=base[j*3+1]; out[i*3+2]=base[j*3+2]; }
-    S._inv = out; S._invName = S.cmap;
+  const b=LUT[S.cmap]||LUT.parula;
+  if (!S.invert) return b;
+  if (!S._inv||S._invName!==S.cmap){
+    const o=new Uint8Array(768);
+    for(let i=0;i<256;i++){const j=255-i;o[i*3]=b[j*3];o[i*3+1]=b[j*3+1];o[i*3+2]=b[j*3+2];}
+    S._inv=o; S._invName=S.cmap;
   }
   return S._inv;
 }
 
-/* ============================================================
-   State
-   ============================================================ */
+/* ---------------- state ---------------- */
 const S = {
-  h5: null, fs: null, tmpPath: null, file: null, fileName: "",
-  candidates: [], vectors: [],
-  dims: [1,1,1], strides: [1,1,1],
-  values: null, names: ["x","y","z"], dataName: "",
-  axes: [null,null,null],          // axis vectors or null (index axis)
-  idx: [0,0,0],
-  vmin: 0, vmax: 1,
-  cmap: "viridis", invert: false,
-  token: null, pickerReady: false, folderId: null
+  h5:null, fs:null, tmpPath:null, file:null, fileName:"",
+  candidates:[], vectors:[],
+  dims:[1,1,1], strides:[1,1,1], values:null,
+  names:["x","y","z"], dataName:"", axes:[null,null,null],
+  idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
+  cmap:"parula", invert:false, epoch:0,
+  token:null, pickerReady:false, folderId:null
 };
 
-/* ============================================================
-   HDF5 engine
-   ============================================================ */
+/* ---------------- HDF5 ---------------- */
 async function loadH5(){
-  const urls = [
-    "https://cdn.jsdelivr.net/npm/h5wasm@0.7/dist/esm/hdf5_hl.js",
-    "https://unpkg.com/h5wasm@0.7/dist/esm/hdf5_hl.js"
-  ];
+  const urls=["https://cdn.jsdelivr.net/npm/h5wasm@0.7/dist/esm/hdf5_hl.js",
+              "https://unpkg.com/h5wasm@0.7/dist/esm/hdf5_hl.js"];
   let last;
   for (const u of urls){
     try{
-      const mod = await import(/* @vite-ignore */ u);
-      const h = mod.default || mod;
-      const M = await h.ready;                       // resolves to the emscripten module
-      const fs = (M && M.FS) || h.FS || mod.FS;      // FS lives there, not on the default export
-      if (!fs || typeof fs.writeFile !== "function") throw new Error("h5wasm loaded without a filesystem");
-      return { h, fs };
-    }catch(e){ last = e; console.warn("h5wasm load failed from", u, e); }
+      const mod=await import(/* @vite-ignore */ u);
+      const h=mod.default||mod;
+      const M=await h.ready;
+      const fs=(M&&M.FS)||h.FS||mod.FS;
+      if (!fs||typeof fs.writeFile!=="function") throw new Error("h5wasm loaded without a filesystem");
+      return {h,fs};
+    }catch(e){ last=e; console.warn("h5wasm",u,e); }
   }
-  throw last || new Error("h5wasm unavailable");
+  throw last||new Error("h5wasm unavailable");
 }
+const isDataset=o=>o&&typeof o==="object"&&"shape" in o&&"dtype" in o;
+const isGroup=o=>o&&typeof o==="object"&&typeof o.keys==="function"&&!isDataset(o);
 
-function isDataset(o){ return o && typeof o === "object" && "shape" in o && "dtype" in o; }
-function isGroup(o){ return o && typeof o === "object" && typeof o.keys === "function" && !isDataset(o); }
-
-/* Walk the file and classify every numeric dataset.
-   MATLAB writes HDF5 dimensions reversed, so a (nx,ny,nz) array
-   arrives with shape [nz,ny,nx]; reversing recovers MATLAB order,
-   and the flat buffer is already column-major for that order. */
-function scan(node, path, out){
-  let keys;
-  try{ keys = node.keys(); }catch(e){ return; }
+function scan(node,path,out){
+  let keys; try{ keys=node.keys(); }catch(e){ return; }
   for (const k of keys){
-    if (k === "#refs#" || k === "#subsystem#") continue;
-    const p = path ? path + "/" + k : k;
-    let o;
-    try{ o = node.get(k); }catch(e){ continue; }
-    if (isGroup(o)) scan(o, p, out);
+    if (k==="#refs#"||k==="#subsystem#") continue;
+    const p=path?path+"/"+k:k;
+    let o; try{ o=node.get(k); }catch(e){ continue; }
+    if (isGroup(o)) scan(o,p,out);
     else if (isDataset(o)){
-      const shape = Array.from(o.shape || []);
-      const dims = shape.slice().reverse();
-      const eff = dims.filter(d => d > 1);
-      const n = dims.reduce((a,b)=>a*b, 1);
+      const dims=Array.from(o.shape||[]).slice().reverse();   // MATLAB writes dims reversed
+      const n=dims.reduce((a,b)=>a*b,1);
       if (!n) continue;
-      out.push({ path: p, node: o, dims, eff, count: n, dtype: String(o.dtype) });
+      out.push({path:p,node:o,dims,eff:dims.filter(d=>d>1),count:n,dtype:String(o.dtype)});
     }
   }
 }
-
-function readFlat(entry){
-  let v;
-  try{ v = entry.node.value; }
-  catch(e){ throw new Error("cannot read " + entry.path + " (" + e.message + ")"); }
+function readFlat(e){
+  let v; try{ v=e.node.value; }catch(err){ throw new Error("cannot read "+e.path+" ("+err.message+")"); }
   if (ArrayBuffer.isView(v)) return v;
   if (Array.isArray(v)){
-    const flat = [];
-    (function rec(a){ for (const x of a){ Array.isArray(x) ? rec(x) : flat.push(typeof x === "number" ? x : NaN); } })(v);
-    return Float64Array.from(flat);
+    const f=[]; (function r(a){for(const x of a){Array.isArray(x)?r(x):f.push(typeof x==="number"?x:NaN);}})(v);
+    return Float64Array.from(f);
   }
-  throw new Error(entry.path + " is not numeric (complex or cell data is not supported yet)");
+  throw new Error(e.path+" is not plain numeric data (complex or cell arrays are not supported yet)");
 }
 
-/* ============================================================
-   Opening a file
-   ============================================================ */
-async function openBuffer(buf, name){
-  status("Parsing " + name + " …");
-  await new Promise(r => setTimeout(r, 10));
+/* ---------------- opening ---------------- */
+async function openBuffer(buf,name){
+  status("Parsing "+name+" …");
+  await new Promise(r=>setTimeout(r,10));
   try{
-    if (S.file){ try{ S.file.close(); }catch(e){} S.file = null; }
-    if (S.tmpPath){ try{ S.fs.unlink(S.tmpPath); }catch(e){} }
-    const tmp = "/work_" + Date.now() + ".h5";
-    S.fs.writeFile(tmp, new Uint8Array(buf));
-    S.tmpPath = tmp;
-    S.file = new S.h5.File(tmp, "r");
-    S.fileName = name;
-
-    const all = [];
-    scan(S.file, "", all);
-    if (!all.length) throw new Error("no datasets found — is this really a -v7.3 file?");
-
-    S.candidates = all.filter(e => e.eff.length >= 2).sort((a,b)=>b.count-a.count);
-    S.vectors    = all.filter(e => e.eff.length === 1 && e.count > 1).sort((a,b)=>a.path.localeCompare(b.path));
-
-    if (!S.candidates.length){
-      throw new Error("no 2-D or 3-D arrays in this file — found only " + all.length + " scalar/vector entries");
-    }
-    fillSelect($("selData"), S.candidates.map(e => ({
-      v: e.path, t: e.path + "  [" + e.eff.join(" × ") + "]"
-    })));
-    $("varBar").classList.remove("hidden");
-    $("dispBar").classList.remove("hidden");
+    if (S.file){ try{S.file.close();}catch(e){} S.file=null; }
+    if (S.tmpPath){ try{S.fs.unlink(S.tmpPath);}catch(e){} }
+    const tmp="/work_"+Date.now()+".h5";
+    S.fs.writeFile(tmp,new Uint8Array(buf));
+    S.tmpPath=tmp;
+    S.file=new S.h5.File(tmp,"r");
+    S.fileName=name;
+    const all=[]; scan(S.file,"",all);
+    if (!all.length) throw new Error("no datasets found — is this a -v7.3 file?");
+    S.candidates=all.filter(e=>e.eff.length>=2).sort((a,b)=>b.count-a.count);
+    S.vectors=all.filter(e=>e.eff.length===1&&e.count>1).sort((a,b)=>a.path.localeCompare(b.path));
+    if (!S.candidates.length) throw new Error("no 2-D or 3-D arrays in this file");
+    fillSelect($("selData"),S.candidates.map(e=>({v:e.path,t:e.path+"  ["+e.eff.join(" × ")+"]"})));
+    $("varBar").classList.remove("hidden"); $("dispBar").classList.remove("hidden");
     selectData(S.candidates[0].path);
-    status("Loaded " + name, "ok");
-  }catch(e){
-    console.error(e);
-    status(e.message, "err");
-  }
+    status("Loaded "+name,"ok");
+  }catch(e){ console.error(e); status(e.message,"err"); }
 }
-
-function fillSelect(sel, items, extra){
-  sel.innerHTML = "";
-  if (extra) { const o = document.createElement("option"); o.value=""; o.textContent = extra; sel.appendChild(o); }
-  for (const it of items){
-    const o = document.createElement("option");
-    o.value = it.v; o.textContent = it.t;
-    sel.appendChild(o);
-  }
+function fillSelect(sel,items,extra){
+  sel.innerHTML="";
+  if (extra){const o=document.createElement("option");o.value="";o.textContent=extra;sel.appendChild(o);}
+  for (const it of items){const o=document.createElement("option");o.value=it.v;o.textContent=it.t;sel.appendChild(o);}
 }
-
 function selectData(path){
-  const e = S.candidates.find(c => c.path === path);
-  if (!e) return;
-  let values;
-  try{ values = readFlat(e); }
-  catch(err){ status(err.message, "err"); return; }
-
-  // collapse singleton dimensions, keep at most three
-  const dims = [], map = [];
-  e.dims.forEach((d,i)=>{ if (d>1){ dims.push(d); map.push(i); } });
-  while (dims.length < 3) dims.push(1);
-  if (dims.length > 3){
-    status("array has " + dims.length + " non-singleton dimensions; showing the first three", "err");
-    dims.length = 3;
-  }
-
-  S.values = values;
-  S.dims = dims;
-  S.strides = [1, dims[0], dims[0]*dims[1]];
-  S.dataName = e.path;
-  S.idx = dims.map(d => Math.floor(d/2));
-
-  // range over the whole volume, ignoring NaN
-  let lo = Infinity, hi = -Infinity;
-  for (let i=0;i<values.length;i++){ const v = values[i]; if (v===v){ if (v<lo) lo=v; if (v>hi) hi=v; } }
-  if (!isFinite(lo)){ lo = 0; hi = 1; }
-  S.fullMin = lo; S.fullMax = hi;
-  S.vmin = lo; S.vmax = hi;
-  $("inVmin").value = +lo.toPrecision(6);
-  $("inVmax").value = +hi.toPrecision(6);
-
+  const e=S.candidates.find(c=>c.path===path); if (!e) return;
+  let values; try{ values=readFlat(e); }catch(err){ status(err.message,"err"); return; }
+  const dims=[]; e.dims.forEach(d=>{ if(d>1) dims.push(d); });
+  while (dims.length<3) dims.push(1);
+  if (dims.length>3){ status("more than three non-singleton dimensions; showing the first three","err"); dims.length=3; }
+  S.values=values; S.dims=dims;
+  S.strides=[1,dims[0],dims[0]*dims[1]];
+  S.dataName=e.path; S.idx=dims.map(d=>Math.floor(d/2));
+  let lo=Infinity,hi=-Infinity;
+  for (let i=0;i<values.length;i++){const v=values[i];if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;}}
+  if (!isFinite(lo)){lo=0;hi=1;}
+  S.fullMin=lo; S.fullMax=hi; S.vmin=lo; S.vmax=hi;
+  $("inVmin").value=+lo.toPrecision(6); $("inVmax").value=+hi.toPrecision(6);
   guessAxes();
-  $("dimsTag").textContent = dims.join(" × ") + "   ·   " + fmt(lo) + " … " + fmt(hi);
-  showAll();
-  redrawAll();
+  $("dimsTag").textContent=dims.join(" × ")+"   ·   "+fmt(lo)+" … "+fmt(hi);
+  $("stage").classList.remove("hidden"); $("empty").classList.add("hidden");
+  S.epoch++; resize(); draw();
 }
-
-/* Match 1-D vectors to dimensions by length. */
 function guessAxes(){
-  const opts = S.vectors.map(v => ({ v: v.path, t: v.path + " [" + v.count + "]" }));
+  const opts=S.vectors.map(v=>({v:v.path,t:v.path+" ["+v.count+"]"}));
   ["selX","selY","selZ"].forEach((id,d)=>{
-    fillSelect($(id), opts, "index 1…" + S.dims[d]);
-    const match = S.vectors.find(v => v.count === S.dims[d]);
-    $(id).value = (match && S.dims[d] > 1) ? match.path : "";
+    fillSelect($(id),opts,"index 1…"+S.dims[d]);
+    const m=S.vectors.find(v=>v.count===S.dims[d]);
+    $(id).value=(m&&S.dims[d]>1)?m.path:"";
     applyAxis(d);
   });
 }
-
 function applyAxis(d){
-  const sel = $(["selX","selY","selZ"][d]).value;
-  if (!sel){ S.axes[d] = null; S.names[d] = ["x","y","z"][d]; return; }
-  const e = S.vectors.find(v => v.path === sel);
-  if (!e || e.count !== S.dims[d]){ S.axes[d] = null; S.names[d] = ["x","y","z"][d]; return; }
-  try{
-    S.axes[d] = readFlat(e);
-    S.names[d] = e.path.split("/").pop();
-  }catch(err){ S.axes[d] = null; }
+  const sel=$(["selX","selY","selZ"][d]).value;
+  if (!sel){ S.axes[d]=null; S.names[d]=["x","y","z"][d]; return; }
+  const e=S.vectors.find(v=>v.path===sel);
+  if (!e||e.count!==S.dims[d]){ S.axes[d]=null; S.names[d]=["x","y","z"][d]; return; }
+  try{ S.axes[d]=readFlat(e); S.names[d]=e.path.split("/").pop(); }catch(err){ S.axes[d]=null; }
 }
-
-/* ============================================================
-   Axis geometry.  imagesc centres pixels on the axis values, so
-   the drawn extent runs half a step beyond each end.
-   ============================================================ */
-function axisExtent(d){
-  const n = S.dims[d], v = S.axes[d];
-  if (!v || n < 2 || v.length !== n) return [-0.5, n-0.5];
-  const a = v[0], b = v[n-1], step = (b-a)/(n-1);
-  return [a - step/2, b + step/2];
+const axVal=(d,i)=>{ const v=S.axes[d]; return (v&&v.length===S.dims[d])?v[i]:i+1; };
+const axName=d=>S.names[d];
+function axExtent(d){
+  const n=S.dims[d], v=S.axes[d];
+  if (!v||n<2||v.length!==n) return [-0.5,n-0.5];
+  const a=v[0], b=v[n-1], s=(b-a)/(n-1);
+  return [a-s/2,b+s/2];
 }
-function axisValue(d, i){
-  const v = S.axes[d];
-  return (v && v.length === S.dims[d]) ? v[i] : i+1;
-}
-function axisLabel(d){ return S.names[d]; }
-
-function niceTicks(lo, hi, target){
-  if (!isFinite(lo) || !isFinite(hi) || lo === hi) return [lo];
-  const span = Math.abs(hi-lo);
-  const mag = Math.pow(10, Math.floor(Math.log10(span/target)));
-  const norm = (span/target)/mag;
-  const step = (norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
-  const a = Math.min(lo,hi), b = Math.max(lo,hi);
-  const out = [];
-  for (let v = Math.ceil(a/step)*step; v <= b + step*1e-9; v += step) out.push(+v.toPrecision(12));
+function niceTicks(lo,hi,target){
+  if (!isFinite(lo)||!isFinite(hi)||lo===hi) return [lo];
+  const span=Math.abs(hi-lo);
+  const mag=Math.pow(10,Math.floor(Math.log10(span/target)));
+  const nrm=(span/target)/mag;
+  const step=(nrm<1.5?1:nrm<3?2:nrm<7?5:10)*mag;
+  const a=Math.min(lo,hi), b=Math.max(lo,hi), out=[];
+  for (let v=Math.ceil(a/step)*step; v<=b+step*1e-9; v+=step) out.push(+v.toPrecision(12));
   return out;
 }
 
-/* ============================================================
-   Canvas plumbing
-   ============================================================ */
-const PANELS = [
-  { key:"xy", h:0, v:1, fix:2 },
-  { key:"zy", h:2, v:1, fix:0 },
-  { key:"xz", h:0, v:2, fix:1 }
+/* ===========================================================
+   Layout — the architectural arrangement.
+     row 1 : cut along X   |   cut along Z
+     row 2 : cut along Y | PANEL XY | PANEL ZY | colorbar
+     row 3 : cut along Z | PANEL XZ | readout
+   Panels XY and ZY share the vertical mapping exactly.
+   Panels XY and XZ share the horizontal mapping exactly.
+   Each 1-D strip inherits its panel's mapping, so the dashed
+   lines line up across every plot.
+   =========================================================== */
+const GEO = { pad:12, cutW:92, cutH:80, gap:9, labL:52, labB:30, gapX:34, gapY:34, cbW:26, cbLab:60 };
+let L = null;
+
+function layout(W,H){
+  const g=GEO;
+  const leftBlock = g.pad + g.cutW + g.gap + g.labL;
+  const rightBlock = g.gap + g.cbW + g.cbLab + g.pad;
+  const avail = W - leftBlock - g.gapX - g.labL - rightBlock;
+  const aw = Math.max(140, Math.floor(avail*0.5));
+  const bw = Math.max(120, avail-aw);
+  const ax = leftBlock, bx = ax+aw+g.gapX+g.labL;
+  const ay = g.pad + g.cutH + g.gap;
+  const availH = H - ay - g.labB - g.gapY - g.labB - g.pad;
+  const ah = Math.max(140, Math.floor(availH*0.56));
+  const ch = Math.max(110, availH-ah);
+  const cy = ay + ah + g.labB + g.gapY;
+  return {
+    xy:{x:ax,y:ay,w:aw,h:ah}, zy:{x:bx,y:ay,w:bw,h:ah}, xz:{x:ax,y:cy,w:aw,h:ch},
+    cutTopX:{x:ax,y:g.pad,w:aw,h:g.cutH},
+    cutTopZ:{x:bx,y:g.pad,w:bw,h:g.cutH},
+    cutLeftY:{x:g.pad,y:ay,w:g.cutW,h:ah},
+    cutLeftZ:{x:g.pad,y:cy,w:g.cutW,h:ch},
+    cbar:{x:bx+bw+g.gap,y:ay,w:g.cbW,h:ah},
+    info:{x:bx,y:cy,w:bw,h:ch}
+  };
+}
+
+/* panel descriptors: h = horizontal data axis, v = vertical, fix = sliced axis */
+const PAN = [
+  {key:"xy", h:0, v:1, fix:2},
+  {key:"zy", h:2, v:1, fix:0},
+  {key:"xz", h:0, v:2, fix:1}
 ];
-const CUTS = [ {key:"cx", ax:0}, {key:"cy", ax:1}, {key:"cz", ax:2} ];
-const M = { l:56, r:12, t:10, b:34 };
+/* 1-D strips: ax = the axis plotted; along = "h" (value up) or "v" (value sideways);
+   ref = the panel whose geometry it must match                                        */
+const STRIP = [
+  {key:"cutTopX",  ax:0, dir:"h", ref:"xy"},
+  {key:"cutTopZ",  ax:2, dir:"h", ref:"zy"},
+  {key:"cutLeftY", ax:1, dir:"v", ref:"xy"},
+  {key:"cutLeftZ", ax:2, dir:"v", ref:"xz"}
+];
 
-function sizeCanvas(cv, cssH){
-  const dpr = window.devicePixelRatio || 1;
-  const w = cv.clientWidth || 300;
-  const h = cssH;
-  if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
-    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
-    cv.style.height = h + "px";
-  }
-  const ctx = cv.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return { ctx, w, h };
+const cv = $("cv");
+const ctx = cv.getContext("2d");
+let DPR = 1;
+
+function resize(){
+  const stage=$("stage");
+  if (stage.classList.contains("hidden")) return;
+  DPR = window.devicePixelRatio||1;
+  const W = stage.clientWidth;
+  const top = stage.getBoundingClientRect().top + window.scrollY;
+  const H = Math.max(660, Math.min(1250, window.innerHeight - 24 - (top - window.scrollY)));
+  cv.style.height = H+"px";
+  cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  L = layout(W,H);
+  for (const p of PAN) p._built = -1;
 }
 
-function frame(ctx, w, h, xlab, ylab){
-  ctx.clearRect(0,0,w,h);
-  const px = M.l, py = M.t, pw = w-M.l-M.r, ph = h-M.t-M.b;
-  ctx.strokeStyle = "#16202e"; ctx.lineWidth = 1;
-  ctx.strokeRect(px+.5, py+.5, pw-1, ph-1);
-  ctx.fillStyle = "#5d6b7d";
-  ctx.font = "10px ui-monospace, Menlo, Consolas, monospace";
-  if (xlab){ ctx.textAlign="center"; ctx.fillText(xlab, px+pw/2, h-4); }
-  if (ylab){ ctx.save(); ctx.translate(11, py+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign="center"; ctx.fillText(ylab, 0, 0); ctx.restore(); }
-  return { px, py, pw, ph };
-}
+/* ---- pixel mappings, shared by panels and their strips ---- */
+const pxOf = (r,n,i) => r.x + (i+0.5)/n*r.w;             // horizontal, index → px
+const pyOf = (r,n,j) => r.y + r.h - (j+0.5)/n*r.h;       // vertical,  index → px
+const ixOf = (r,n,x) => Math.max(0,Math.min(n-1,Math.floor((x-r.x)/r.w*n)));
+const iyOf = (r,n,y) => Math.max(0,Math.min(n-1,Math.floor((r.y+r.h-y)/r.h*n)));
 
-function drawTicks(ctx, r, xlo, xhi, ylo, yhi){
-  ctx.fillStyle = "#5d6b7d"; ctx.strokeStyle = "#c5cedb";
-  ctx.font = "9.5px ui-monospace, Menlo, Consolas, monospace";
-  ctx.textAlign = "center"; ctx.textBaseline = "top";
-  for (const t of niceTicks(xlo, xhi, 4)){
-    const x = r.px + (t-xlo)/(xhi-xlo)*r.pw;
-    if (x < r.px-1 || x > r.px+r.pw+1) continue;
-    ctx.beginPath(); ctx.moveTo(x, r.py+r.ph); ctx.lineTo(x, r.py+r.ph+4); ctx.stroke();
-    ctx.fillText(fmtShort(t), x, r.py+r.ph+6);
+/* ---- slice rendering into offscreen canvases ---- */
+const off={};
+function buildSlice(p){
+  const nH=S.dims[p.h], nV=S.dims[p.v];
+  let o=off[p.key];
+  if (!o||o.cv.width!==nH||o.cv.height!==nV){
+    const c=document.createElement("canvas"); c.width=nH; c.height=nV;
+    o=off[p.key]={cv:c,ctx:c.getContext("2d"),img:c.getContext("2d").createImageData(nH,nV)};
   }
-  ctx.textAlign = "right"; ctx.textBaseline = "middle";
-  for (const t of niceTicks(ylo, yhi, 4)){
-    const y = r.py + r.ph - (t-ylo)/(yhi-ylo)*r.ph;
-    if (y < r.py-1 || y > r.py+r.ph+1) continue;
-    ctx.beginPath(); ctx.moveTo(r.px-4, y); ctx.lineTo(r.px, y); ctx.stroke();
-    ctx.fillText(fmtShort(t), r.px-6, y);
-  }
-}
-
-/* ---- image panels ---- */
-const off = {};
-function drawPanel(p){
-  const cv = $("cv-" + p.key);
-  const nH = S.dims[p.h], nV = S.dims[p.v];
-  const { ctx, w, h } = sizeCanvas(cv, Math.max(220, Math.round((cv.clientWidth||300)*0.78)));
-  const r = frame(ctx, w, h, axisLabel(p.h), axisLabel(p.v));
-  if (!S.values) return;
-
-  // render the slice into an offscreen canvas at native resolution
-  let o = off[p.key];
-  if (!o || o.cv.width !== nH || o.cv.height !== nV){
-    const c = document.createElement("canvas");
-    c.width = nH; c.height = nV;
-    o = off[p.key] = { cv:c, ctx:c.getContext("2d"), img:c.getContext("2d").createImageData(nH,nV) };
-  }
-  const px = o.img.data, lut = activeLUT();
-  const sh = S.strides[p.h], sv = S.strides[p.v], sf = S.strides[p.fix];
-  const base = S.idx[p.fix]*sf;
-  const span = (S.vmax - S.vmin) || 1, k = 255/span;
+  const px=o.img.data, lut=activeLUT();
+  const sh=S.strides[p.h], sv=S.strides[p.v], base=S.idx[p.fix]*S.strides[p.fix];
+  const k=255/((S.vmax-S.vmin)||1);
   for (let j=0;j<nV;j++){
-    const rowBase = base + j*sv;
-    let q = (nV-1-j)*nH*4;                    // flip so the axis runs upward
-    for (let i=0;i<nH;i++, q+=4){
-      const val = S.values[rowBase + i*sh];
-      if (val !== val){ px[q]=214; px[q+1]=219; px[q+2]=226; px[q+3]=255; continue; }
-      let t = (val - S.vmin)*k;
-      t = t < 0 ? 0 : t > 255 ? 255 : t;
-      const li = (t|0)*3;
-      px[q]=lut[li]; px[q+1]=lut[li+1]; px[q+2]=lut[li+2]; px[q+3]=255;
+    const rb=base+j*sv;
+    let q=(nV-1-j)*nH*4;
+    for (let i=0;i<nH;i++,q+=4){
+      const val=S.values[rb+i*sh];
+      if (val!==val){ px[q]=214;px[q+1]=219;px[q+2]=226;px[q+3]=255; continue; }
+      let t=(val-S.vmin)*k; t=t<0?0:t>255?255:t;
+      const li=(t|0)*3;
+      px[q]=lut[li];px[q+1]=lut[li+1];px[q+2]=lut[li+2];px[q+3]=255;
     }
   }
-  o.ctx.putImageData(o.img, 0, 0);
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(o.cv, 0, 0, nH, nV, r.px, r.py, r.pw, r.ph);
-  ctx.strokeStyle = "#16202e"; ctx.lineWidth = 1;
-  ctx.strokeRect(r.px+.5, r.py+.5, r.pw-1, r.ph-1);
-
-  const [xlo,xhi] = axisExtent(p.h), [ylo,yhi] = axisExtent(p.v);
-  drawTicks(ctx, r, xlo, xhi, ylo, yhi);
-
-  // crosshair — dashed, as in the MATLAB explorer
-  const cx = r.px + (S.idx[p.h]+0.5)/nH*r.pw;
-  const cy = r.py + r.ph - (S.idx[p.v]+0.5)/nV*r.ph;
-  ctx.save();
-  ctx.setLineDash([5,4]); ctx.lineWidth = 1.25;
-  ctx.strokeStyle = "rgba(255,255,255,.85)";
-  ctx.beginPath(); ctx.moveTo(r.px,cy); ctx.lineTo(r.px+r.pw,cy);
-  ctx.moveTo(cx,r.py); ctx.lineTo(cx,r.py+r.ph); ctx.stroke();
-  ctx.setLineDash([5,4]); ctx.lineDashOffset = 4.5;
-  ctx.strokeStyle = "rgba(0,0,0,.55)";
-  ctx.beginPath(); ctx.moveTo(r.px,cy); ctx.lineTo(r.px+r.pw,cy);
-  ctx.moveTo(cx,r.py); ctx.lineTo(cx,r.py+r.ph); ctx.stroke();
-  ctx.restore();
-
-  $("ttl-"+p.key).textContent = axisLabel(p.h) + " – " + axisLabel(p.v);
-  $("fix-"+p.key).textContent = axisLabel(p.fix) + " = " + fmtShort(axisValue(p.fix, S.idx[p.fix]));
-  p._rect = r;
+  o.ctx.putImageData(o.img,0,0);
+  return o;
 }
 
-/* ---- linecuts ---- */
-function drawCut(c){
-  const cv = $("cv-" + c.key);
-  const { ctx, w, h } = sizeCanvas(cv, 170);
-  const a = c.ax, n = S.dims[a];
-  const r = frame(ctx, w, h, axisLabel(a), S.dataName.split("/").pop());
-  if (!S.values || n < 2) return;
-
-  const others = [0,1,2].filter(d => d !== a);
-  const base = S.idx[others[0]]*S.strides[others[0]] + S.idx[others[1]]*S.strides[others[1]];
-  const sa = S.strides[a];
-  const y = new Float64Array(n);
-  let lo = Infinity, hi = -Infinity;
-  for (let i=0;i<n;i++){
-    const v = S.values[base + i*sa];
-    y[i] = v;
-    if (v === v){ if (v<lo) lo=v; if (v>hi) hi=v; }
+/* ---- drawing helpers ---- */
+function box(r){ ctx.strokeStyle="#16202e"; ctx.lineWidth=1; ctx.strokeRect(r.x+.5,r.y+.5,r.w-1,r.h-1); }
+function ticksX(r,lo,hi,below,n){
+  ctx.fillStyle="#5d6b7d"; ctx.strokeStyle="#8fa0b4"; ctx.lineWidth=1;
+  ctx.font="10px "+MONO; ctx.textAlign="center"; ctx.textBaseline="top";
+  for (const t of niceTicks(lo,hi,n||4)){
+    const x=r.x+(t-lo)/(hi-lo)*r.w;
+    if (x<r.x-1||x>r.x+r.w+1) continue;
+    ctx.beginPath(); ctx.moveTo(x,r.y+r.h); ctx.lineTo(x,r.y+r.h+4); ctx.stroke();
+    if (below) ctx.fillText(fmtT(t),x,r.y+r.h+6);
   }
-  if (!isFinite(lo)){ lo = 0; hi = 1; }
-  if (lo === hi){ lo -= 1; hi += 1; }
-  const pad = (hi-lo)*0.06; lo -= pad; hi += pad;
-  const [xlo,xhi] = axisExtent(a);
-  drawTicks(ctx, r, xlo, xhi, lo, hi);
-
-  const X = i => r.px + (i+0.5)/n*r.pw;
-  const Y = v => r.py + r.ph - (v-lo)/(hi-lo)*r.ph;
-
+}
+function ticksY(r,lo,hi,left,n){
+  ctx.fillStyle="#5d6b7d"; ctx.strokeStyle="#8fa0b4"; ctx.lineWidth=1;
+  ctx.font="10px "+MONO; ctx.textAlign="right"; ctx.textBaseline="middle";
+  for (const t of niceTicks(lo,hi,n||5)){
+    const y=r.y+r.h-(t-lo)/(hi-lo)*r.h;
+    if (y<r.y-1||y>r.y+r.h+1) continue;
+    ctx.beginPath(); ctx.moveTo(r.x-4,y); ctx.lineTo(r.x,y); ctx.stroke();
+    if (left) ctx.fillText(fmtT(t),r.x-6,y);
+  }
+}
+const MONO = 'ui-monospace, Menlo, Consolas, monospace';
+function labelX(r,txt){
+  ctx.fillStyle="#16202e"; ctx.font="11px "+MONO;
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  ctx.fillText(txt,r.x+r.w/2,r.y+r.h+17);
+}
+function labelY(r,txt){
+  ctx.save(); ctx.fillStyle="#16202e"; ctx.font="11px "+MONO;
+  ctx.translate(r.x-GEO.labL+13,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(txt,0,0); ctx.restore();
+}
+function dashed(x1,y1,x2,y2,hot){
   ctx.save();
-  ctx.beginPath(); ctx.rect(r.px, r.py, r.pw, r.ph); ctx.clip();
-  ctx.strokeStyle = "#2b4a7d"; ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  let pen = false;
-  for (let i=0;i<n;i++){
-    const v = y[i];
-    if (v !== v){ pen = false; continue; }
-    const xx = X(i), yy = Y(v);
-    if (!pen){ ctx.moveTo(xx,yy); pen = true; } else ctx.lineTo(xx,yy);
-  }
-  ctx.stroke();
-
-  const mx = X(S.idx[a]);
-  ctx.setLineDash([5,4]); ctx.strokeStyle = "#a82d27"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(mx, r.py); ctx.lineTo(mx, r.py+r.ph); ctx.stroke();
-  ctx.setLineDash([]);
-  const cv0 = y[S.idx[a]];
-  if (cv0 === cv0){
-    ctx.fillStyle = "#a82d27";
-    ctx.beginPath(); ctx.arc(mx, Y(cv0), 3, 0, 6.2832); ctx.fill();
-  }
+  ctx.lineWidth=hot?2:1.3; ctx.setLineDash([6,4]);
+  ctx.strokeStyle="rgba(255,255,255,.92)";
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.lineDashOffset=5;
+  ctx.strokeStyle=hot?"#a82d27":"rgba(0,0,0,.62)";
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
   ctx.restore();
-
-  $("ttl-"+c.key).textContent = "cut along " + axisLabel(a) + "   ·   " +
-    others.map(d => axisLabel(d) + " = " + fmtShort(axisValue(d, S.idx[d]))).join(", ");
 }
 
-/* ============================================================
-   Redraw
-   ============================================================ */
-let pending = false;
-function redrawAll(){
-  if (pending) return;
-  pending = true;
+/* ---- panels ---- */
+function drawPanel(p){
+  const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
+  if (nH<2||nV<2){ ctx.fillStyle="#f2f5f8"; ctx.fillRect(r.x,r.y,r.w,r.h); box(r); return; }
+  if (p._built!==S.idx[p.fix]||p._epoch!==S.epoch){
+    p._o=buildSlice(p); p._built=S.idx[p.fix]; p._epoch=S.epoch;
+  }
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(p._o.cv,0,0,nH,nV,r.x,r.y,r.w,r.h);
+  box(r);
+  const [xl,xh]=axExtent(p.h), [yl,yh]=axExtent(p.v);
+  ticksX(r,xl,xh,true); ticksY(r,yl,yh,true);
+  labelX(r,axName(p.h)); labelY(r,axName(p.v));
+  const cx=pxOf(r,nH,S.idx[p.h]), cy=pyOf(r,nV,S.idx[p.v]);
+  dashed(r.x,cy,r.x+r.w,cy, HOT&&HOT.panel===p.key&&HOT.mode==="h");
+  dashed(cx,r.y,cx,r.y+r.h, HOT&&HOT.panel===p.key&&HOT.mode==="v");
+  ctx.fillStyle="#16202e"; ctx.font="10px "+MONO;
+  ctx.textAlign="right"; ctx.textBaseline="bottom";
+  ctx.fillText(axName(p.fix)+" = "+fmtT(axVal(p.fix,S.idx[p.fix])), r.x+r.w-5, r.y-3);
+}
+
+/* ---- 1-D strips ---- */
+function cutData(a){
+  const n=S.dims[a], o=[0,1,2].filter(d=>d!==a);
+  const base=S.idx[o[0]]*S.strides[o[0]]+S.idx[o[1]]*S.strides[o[1]];
+  const sa=S.strides[a], y=new Float64Array(n);
+  let lo=Infinity,hi=-Infinity;
+  for (let i=0;i<n;i++){ const v=S.values[base+i*sa]; y[i]=v; if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;} }
+  if (!isFinite(lo)){lo=0;hi=1;}
+  if (lo===hi){lo-=1;hi+=1;}
+  const pad=(hi-lo)*0.08;
+  return {y,lo:lo-pad,hi:hi+pad,n};
+}
+function drawStrip(s){
+  const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
+  ctx.fillStyle="#fbfcfd"; ctx.fillRect(r.x,r.y,r.w,r.h);
+  box(r);
+  if (n<2||!S.values) return;
+  const {y,lo,hi}=cutData(s.ax);
+  ctx.save(); ctx.beginPath(); ctx.rect(r.x,r.y,r.w,r.h); ctx.clip();
+  ctx.strokeStyle="#1f3f77"; ctx.lineWidth=1.3; ctx.beginPath();
+  let pen=false;
+  if (s.dir==="h"){
+    for (let i=0;i<n;i++){
+      const v=y[i]; if (v!==v){pen=false;continue;}
+      const X=pxOf(pr,n,i), Y=r.y+r.h-(v-lo)/(hi-lo)*r.h;
+      pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
+    }
+  } else {
+    for (let i=0;i<n;i++){
+      const v=y[i]; if (v!==v){pen=false;continue;}
+      const Y=pyOf(pr,n,i), X=r.x+r.w-(v-lo)/(hi-lo)*r.w;  // value grows leftward
+      pen?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),pen=true);
+    }
+  }
+  ctx.stroke(); ctx.restore();
+
+  const hot = HOT&&HOT.strip===s.key;
+  if (s.dir==="h"){
+    const X=pxOf(pr,n,S.idx[s.ax]);
+    ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=hot?2:1.1;
+    ctx.strokeStyle=hot?"#a82d27":"#16202e";
+    ctx.beginPath(); ctx.moveTo(X,r.y); ctx.lineTo(X,r.y+r.h); ctx.stroke(); ctx.restore();
+    ticksY(r,lo,hi,true,2);
+  } else {
+    const Y=pyOf(pr,n,S.idx[s.ax]);
+    ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=hot?2:1.1;
+    ctx.strokeStyle=hot?"#a82d27":"#16202e";
+    ctx.beginPath(); ctx.moveTo(r.x,Y); ctx.lineTo(r.x+r.w,Y); ctx.stroke(); ctx.restore();
+    ctx.fillStyle="#5d6b7d"; ctx.font="9.5px "+MONO;
+    ctx.textAlign="left"; ctx.textBaseline="top";
+    ctx.fillText(fmtT(hi),r.x+2,r.y+r.h+5);
+    ctx.textAlign="right"; ctx.fillText(fmtT(lo),r.x+r.w,r.y+r.h+5);
+  }
+}
+
+/* ---- colorbar ---- */
+function drawColorbar(){
+  const r=L.cbar, lut=activeLUT();
+  const img=ctx.createImageData(1,256);
+  for (let i=0;i<256;i++){
+    const li=(255-i)*3, o=i*4;
+    img.data[o]=lut[li];img.data[o+1]=lut[li+1];img.data[o+2]=lut[li+2];img.data[o+3]=255;
+  }
+  if (!drawColorbar._c){ drawColorbar._c=document.createElement("canvas"); drawColorbar._c.width=1; drawColorbar._c.height=256; }
+  drawColorbar._c.getContext("2d").putImageData(img,0,0);
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(drawColorbar._c,0,0,1,256,r.x,r.y,r.w,r.h);
+  box(r);
+  ctx.fillStyle="#16202e"; ctx.font="10px "+MONO; ctx.textAlign="left";
+  ctx.textBaseline="top";    ctx.fillText(fmtT(S.vmax),r.x+r.w+6,r.y);
+  ctx.textBaseline="bottom"; ctx.fillText(fmtT(S.vmin),r.x+r.w+6,r.y+r.h);
+  ctx.save(); ctx.translate(r.x+r.w+50,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font="11px "+MONO;
+  ctx.fillText(S.dataName.split("/").pop(),0,0); ctx.restore();
+}
+
+/* ---- readout quadrant ---- */
+function drawInfo(){
+  const r=L.info;
+  ctx.fillStyle="#16202e"; ctx.fillRect(r.x,r.y,r.w,r.h);
+  const v=S.values?S.values[S.idx[0]*S.strides[0]+S.idx[1]*S.strides[1]+S.idx[2]*S.strides[2]]:NaN;
+  let y=r.y+26;
+  ctx.textAlign="left"; ctx.textBaseline="middle";
+  for (let d=0;d<3;d++){
+    if (S.dims[d]<2) continue;
+    ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
+    ctx.fillText(axName(d).toUpperCase(),r.x+20,y-13);
+    ctx.fillStyle="#ffffff"; ctx.font="17px "+MONO;
+    ctx.fillText(fmt(axVal(d,S.idx[d])),r.x+20,y+4);
+    ctx.fillStyle="#6f8399"; ctx.font="11px "+MONO;
+    ctx.fillText("index "+(S.idx[d]+1)+" / "+S.dims[d],r.x+180,y+4);
+    y+=40;
+  }
+  ctx.fillStyle="#7f93ab"; ctx.font="10px "+MONO;
+  ctx.fillText(S.dataName.split("/").pop().toUpperCase(),r.x+20,y-13);
+  ctx.fillStyle="#8fd3b6"; ctx.font="21px "+MONO;
+  ctx.fillText(fmt(v),r.x+20,y+6);
+  ctx.fillStyle="#61748a"; ctx.font="10.5px "+MONO;
+  ctx.textBaseline="bottom";
+  ctx.fillText("drag dashed lines to move slices",r.x+20,r.y+r.h-26);
+  ctx.fillText("wheel over a panel steps its slice",r.x+20,r.y+r.h-11);
+}
+
+let raf=false;
+function draw(){
+  if (raf) return; raf=true;
   requestAnimationFrame(()=>{
-    pending = false;
-    if (!S.values) return;
-    for (const p of PANELS){
-      const usable = S.dims[p.h] > 1 && S.dims[p.v] > 1;
-      $("pan-"+p.key).classList.toggle("hidden", !usable);
-      if (usable) drawPanel(p);
-    }
-    for (const c of CUTS){
-      const usable = S.dims[c.ax] > 1;
-      $("cut-"+c.key).classList.toggle("hidden", !usable);
-      if (usable) drawCut(c);
-    }
-    updateReadout();
+    raf=false;
+    if (!S.values||!L) return;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for (const s of STRIP) drawStrip(s);
+    for (const p of PAN) drawPanel(p);
+    drawColorbar(); drawInfo();
   });
 }
 
-function updateReadout(){
-  const [i,j,k] = S.idx;
-  const v = S.values[i*S.strides[0] + j*S.strides[1] + k*S.strides[2]];
-  $("kX").textContent = axisLabel(0);
-  $("kY").textContent = axisLabel(1);
-  $("kZ").textContent = axisLabel(2);
-  $("kV").textContent = S.dataName.split("/").pop();
-  $("rX").textContent = fmt(axisValue(0,i));
-  $("rY").textContent = fmt(axisValue(1,j));
-  $("rZ").textContent = fmt(axisValue(2,k));
-  $("rV").textContent = fmt(v);
-  $("rI").textContent = (i+1) + ", " + (j+1) + ", " + (k+1);
-  const ids = [["slx",0],["sly",1],["slz",2]];
-  for (const [id,d] of ids){
-    $(id).classList.toggle("hidden", S.dims[d] < 2);
-    $(id+"N").textContent = axisLabel(d);
-    $(id+"V").textContent = fmtShort(axisValue(d, S.idx[d])) + "   [" + (S.idx[d]+1) + "/" + S.dims[d] + "]";
-    const rng = $(id+"R");
-    rng.max = S.dims[d]-1;
-    if (+rng.value !== S.idx[d]) rng.value = S.idx[d];
+/* ===========================================================
+   Interaction — grab the dashed lines
+   =========================================================== */
+let HOT=null, DRAG=null;
+const NEAR=7;
+
+function hit(x,y){
+  for (const p of PAN){
+    const r=L[p.key], nH=S.dims[p.h], nV=S.dims[p.v];
+    if (nH<2||nV<2) continue;
+    if (x>=r.x-NEAR&&x<=r.x+r.w+NEAR&&y>=r.y-NEAR&&y<=r.y+r.h+NEAR){
+      const cx=pxOf(r,nH,S.idx[p.h]), cy=pyOf(r,nV,S.idx[p.v]);
+      const dv=Math.abs(x-cx), dh=Math.abs(y-cy);
+      if (dv<NEAR&&dv<=dh) return {panel:p.key,mode:"v"};
+      if (dh<NEAR)         return {panel:p.key,mode:"h"};
+      if (x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) return {panel:p.key,mode:"both"};
+    }
   }
+  for (const s of STRIP){
+    const r=L[s.key], pr=L[s.ref], n=S.dims[s.ax];
+    if (n<2) continue;
+    if (x<r.x-NEAR||x>r.x+r.w+NEAR||y<r.y-NEAR||y>r.y+r.h+NEAR) continue;
+    if (s.dir==="h"){ if (Math.abs(x-pxOf(pr,n,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"v"}; }
+    else            { if (Math.abs(y-pyOf(pr,n,S.idx[s.ax]))<NEAR) return {strip:s.key,mode:"h"}; }
+  }
+  const c=L.cbar;
+  if (x>=c.x-4&&x<=c.x+c.w+4&&y>=c.y&&y<=c.y+c.h) return {cbar:true};
+  return null;
 }
 
-function showAll(){
-  for (const id of ["readout","sliders","panels","cuts"]) $(id).classList.remove("hidden");
-  $("empty").classList.add("hidden");
+function applyDrag(t,x,y){
+  if (t.panel){
+    const p=PAN.find(q=>q.key===t.panel), r=L[p.key];
+    if (t.mode==="v"||t.mode==="both") S.idx[p.h]=ixOf(r,S.dims[p.h],x);
+    if (t.mode==="h"||t.mode==="both") S.idx[p.v]=iyOf(r,S.dims[p.v],y);
+  } else if (t.strip){
+    const s=STRIP.find(q=>q.key===t.strip), pr=L[s.ref], n=S.dims[s.ax];
+    S.idx[s.ax] = s.dir==="h" ? ixOf(pr,n,x) : iyOf(pr,n,y);
+  }
+  draw();
 }
 
-/* ============================================================
-   Pointer interaction on the image panels
-   ============================================================ */
-function bindPanel(p){
-  const cv = $("cv-" + p.key);
-  let down = false;
-  const move = ev => {
-    if (!S.values || !p._rect) return;
-    const r = p._rect, b = cv.getBoundingClientRect();
-    const x = ev.clientX - b.left, y = ev.clientY - b.top;
-    let i = Math.floor((x - r.px)/r.pw * S.dims[p.h]);
-    let j = Math.floor((r.py + r.ph - y)/r.ph * S.dims[p.v]);
-    i = Math.max(0, Math.min(S.dims[p.h]-1, i));
-    j = Math.max(0, Math.min(S.dims[p.v]-1, j));
-    if (i === S.idx[p.h] && j === S.idx[p.v]) return;
-    S.idx[p.h] = i; S.idx[p.v] = j;
-    redrawAll();
-  };
-  cv.addEventListener("pointerdown", ev => { down = true; cv.setPointerCapture(ev.pointerId); move(ev); });
-  cv.addEventListener("pointermove", ev => { if (down) move(ev); });
-  cv.addEventListener("pointerup",   ev => { down = false; try{ cv.releasePointerCapture(ev.pointerId); }catch(e){} });
-  cv.addEventListener("pointercancel", ()=>{ down = false; });
-  cv.addEventListener("wheel", ev => {
-    if (!S.values) return;
-    ev.preventDefault();
-    const d = p.fix, step = ev.deltaY > 0 ? 1 : -1;
-    S.idx[d] = Math.max(0, Math.min(S.dims[d]-1, S.idx[d] + step));
-    redrawAll();
-  }, { passive:false });
+function pos(ev){
+  const b=cv.getBoundingClientRect();
+  return [ev.clientX-b.left, ev.clientY-b.top];
 }
-PANELS.forEach(bindPanel);
-
-[["slxR",0],["slyR",1],["slzR",2]].forEach(([id,d])=>{
-  $(id).addEventListener("input", e => { S.idx[d] = +e.target.value; redrawAll(); });
+cv.addEventListener("pointermove",ev=>{
+  if (!S.values||!L) return;
+  const [x,y]=pos(ev);
+  if (DRAG){
+    if (DRAG.cbar){
+      const dy=y-DRAG.y0, f=(S.vmax-S.vmin)/L.cbar.h;
+      const sh=dy*f;                                  // drag down → window moves up in value
+      setRange(DRAG.v0+sh,DRAG.v1+sh,true);
+    } else applyDrag(DRAG,x,y);
+    return;
+  }
+  const h=hit(x,y);
+  const changed = JSON.stringify(h)!==JSON.stringify(HOT);
+  HOT=h;
+  cv.style.cursor = !h ? "default"
+    : h.cbar ? "ns-resize"
+    : h.mode==="v" ? "ew-resize"
+    : h.mode==="h" ? "ns-resize" : "crosshair";
+  if (changed) draw();
 });
+cv.addEventListener("pointerdown",ev=>{
+  if (!S.values||!L) return;
+  const [x,y]=pos(ev); const h=hit(x,y);
+  if (!h) return;
+  cv.setPointerCapture(ev.pointerId);
+  if (h.cbar) DRAG={cbar:true,y0:y,v0:S.vmin,v1:S.vmax};
+  else { DRAG=h; applyDrag(h,x,y); }
+});
+const endDrag=ev=>{ DRAG=null; try{cv.releasePointerCapture(ev.pointerId);}catch(e){} };
+cv.addEventListener("pointerup",endDrag);
+cv.addEventListener("pointercancel",endDrag);
+cv.addEventListener("pointerleave",()=>{ if(!DRAG&&HOT){HOT=null;draw();} });
 
-window.addEventListener("keydown", e => {
+cv.addEventListener("wheel",ev=>{
+  if (!S.values||!L) return;
+  const [x,y]=pos(ev); const h=hit(x,y);
+  if (!h) return;
+  ev.preventDefault();
+  if (h.cbar){                                        // wheel over the bar scales the window
+    const mid=(S.vmin+S.vmax)/2, half=(S.vmax-S.vmin)/2*(ev.deltaY>0?1.12:0.893);
+    setRange(mid-half,mid+half,true);
+    return;
+  }
+  if (h.panel){
+    const p=PAN.find(q=>q.key===h.panel), d=p.fix;
+    S.idx[d]=Math.max(0,Math.min(S.dims[d]-1,S.idx[d]+(ev.deltaY>0?1:-1)));
+    draw();
+  }
+},{passive:false});
+
+window.addEventListener("keydown",e=>{
   if (!S.values) return;
-  const map = { ArrowLeft:[0,-1], ArrowRight:[0,1], ArrowDown:[1,-1], ArrowUp:[1,1], PageDown:[2,-1], PageUp:[2,1] };
-  const m = map[e.key];
-  if (!m) return;
   if (["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) return;
+  const map={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowDown:[1,-1],ArrowUp:[1,1],PageDown:[2,-1],PageUp:[2,1]};
+  const m=map[e.key]; if (!m) return;
   e.preventDefault();
-  const [d,s] = m;
-  S.idx[d] = Math.max(0, Math.min(S.dims[d]-1, S.idx[d]+s));
-  redrawAll();
+  S.idx[m[0]]=Math.max(0,Math.min(S.dims[m[0]]-1,S.idx[m[0]]+m[1]));
+  draw();
 });
 
 let rto;
-window.addEventListener("resize", ()=>{ clearTimeout(rto); rto = setTimeout(redrawAll, 80); });
+window.addEventListener("resize",()=>{ clearTimeout(rto); rto=setTimeout(()=>{resize();draw();},80); });
 
-/* ============================================================
-   Display controls
-   ============================================================ */
-$("selData").addEventListener("change", e => selectData(e.target.value));
-["selX","selY","selZ"].forEach((id,d)=>{
-  $(id).addEventListener("change", ()=>{ applyAxis(d); redrawAll(); });
-});
-$("selCmap").addEventListener("change", e => { S.cmap = e.target.value; S._inv = null; redrawAll(); });
-$("cbInv").addEventListener("change", e => { S.invert = e.target.checked; S._inv = null; redrawAll(); });
-$("inVmin").addEventListener("input", e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.vmin = v; redrawAll(); } });
-$("inVmax").addEventListener("input", e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.vmax = v; redrawAll(); } });
-
-function setRange(lo, hi){
-  if (!(hi > lo)) return;
-  S.vmin = lo; S.vmax = hi;
-  $("inVmin").value = +lo.toPrecision(6);
-  $("inVmax").value = +hi.toPrecision(6);
-  redrawAll();
+/* ---------------- display controls ---------------- */
+function setRange(lo,hi,quiet){
+  if (!(hi>lo)) return;
+  S.vmin=lo; S.vmax=hi; S.epoch++;
+  $("inVmin").value=+lo.toPrecision(6); $("inVmax").value=+hi.toPrecision(6);
+  draw();
 }
-$("bAutoAll").addEventListener("click", ()=> setRange(S.fullMin, S.fullMax));
-$("bAutoSlice").addEventListener("click", ()=>{
-  const p = PANELS[0], nH = S.dims[p.h], nV = S.dims[p.v];
-  const base = S.idx[p.fix]*S.strides[p.fix];
-  let lo = Infinity, hi = -Infinity;
-  for (let j=0;j<nV;j++){
-    const rb = base + j*S.strides[p.v];
-    for (let i=0;i<nH;i++){ const v = S.values[rb + i*S.strides[p.h]]; if (v===v){ if(v<lo)lo=v; if(v>hi)hi=v; } }
-  }
-  setRange(lo, hi);
+$("selData").addEventListener("change",e=>selectData(e.target.value));
+["selX","selY","selZ"].forEach((id,d)=>$(id).addEventListener("change",()=>{applyAxis(d);draw();}));
+$("selCmap").addEventListener("change",e=>{S.cmap=e.target.value;S._inv=null;S.epoch++;draw();});
+$("cbInv").addEventListener("change",e=>{S.invert=e.target.checked;S._inv=null;S.epoch++;draw();});
+$("inVmin").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v<S.vmax){S.vmin=v;S.epoch++;draw();}});
+$("inVmax").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v>S.vmin){S.vmax=v;S.epoch++;draw();}});
+$("bAutoAll").addEventListener("click",()=>setRange(S.fullMin,S.fullMax));
+$("bAutoSlice").addEventListener("click",()=>{
+  const p=PAN[0], nH=S.dims[p.h], nV=S.dims[p.v], base=S.idx[p.fix]*S.strides[p.fix];
+  let lo=Infinity,hi=-Infinity;
+  for (let j=0;j<nV;j++){ const rb=base+j*S.strides[p.v];
+    for (let i=0;i<nH;i++){ const v=S.values[rb+i*S.strides[p.h]]; if(v===v){if(v<lo)lo=v;if(v>hi)hi=v;} } }
+  setRange(lo,hi);
 });
-$("bAutoPct").addEventListener("click", ()=>{
-  const N = S.values.length, stride = Math.max(1, Math.floor(N/200000));
-  const s = [];
-  for (let i=0;i<N;i+=stride){ const v = S.values[i]; if (v===v) s.push(v); }
-  if (s.length < 4) return;
+$("bAutoPct").addEventListener("click",()=>{
+  const N=S.values.length, st=Math.max(1,Math.floor(N/200000)), s=[];
+  for (let i=0;i<N;i+=st){const v=S.values[i]; if(v===v) s.push(v);}
+  if (s.length<4) return;
   s.sort((a,b)=>a-b);
-  setRange(s[Math.floor(s.length*0.01)], s[Math.floor(s.length*0.99)]);
+  setRange(s[Math.floor(s.length*0.01)],s[Math.floor(s.length*0.99)]);
 });
 
-/* ============================================================
-   Local files
-   ============================================================ */
-$("bLocal").addEventListener("click", ()=> $("fileInput").click());
-$("fileInput").addEventListener("change", async e => {
-  const f = e.target.files[0];
-  if (f) openBuffer(await f.arrayBuffer(), f.name);
-});
-["dragenter","dragover"].forEach(t => window.addEventListener(t, e => { e.preventDefault(); document.body.classList.add("drag"); }));
-["dragleave","drop"].forEach(t => window.addEventListener(t, e => { e.preventDefault(); if (t==="dragleave" && e.relatedTarget) return; document.body.classList.remove("drag"); }));
-window.addEventListener("drop", async e => {
-  const f = e.dataTransfer.files[0];
-  if (f) openBuffer(await f.arrayBuffer(), f.name);
-});
+/* ---------------- local files ---------------- */
+$("bLocal").addEventListener("click",()=>$("fileInput").click());
+$("fileInput").addEventListener("change",async e=>{const f=e.target.files[0];if(f)openBuffer(await f.arrayBuffer(),f.name);});
+["dragenter","dragover"].forEach(t=>window.addEventListener(t,e=>{e.preventDefault();document.body.classList.add("drag");}));
+["dragleave","drop"].forEach(t=>window.addEventListener(t,e=>{e.preventDefault();if(t==="dragleave"&&e.relatedTarget)return;document.body.classList.remove("drag");}));
+window.addEventListener("drop",async e=>{const f=e.dataTransfer.files[0];if(f)openBuffer(await f.arrayBuffer(),f.name);});
 
-/* ============================================================
-   Google Drive
-   ============================================================ */
-let tokenClient = null;
+/* ---------------- Drive ---------------- */
+let tokenClient=null;
 function connect(then){
-  if (S.token){ then && then(); return; }
-  if (!window.google || !google.accounts){ status("Google sign-in library did not load", "err"); return; }
-  tokenClient = tokenClient || google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID, scope: SCOPE,
-    callback: resp => {
-      if (resp.error){ status("sign-in failed: " + resp.error, "err"); return; }
-      S.token = resp.access_token;
-      setTimeout(()=>{ S.token = null; }, (resp.expires_in ? resp.expires_in-60 : 3500)*1000);
-      $("bFolder").disabled = false; $("bFiles").disabled = false;
-      $("bConnect").textContent = "Signed in";
-      status("Signed in", "ok");
+  if (S.token){ then&&then(); return; }
+  if (!window.google||!google.accounts){ status("Google sign-in library did not load","err"); return; }
+  tokenClient=tokenClient||google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID, scope:SCOPE,
+    callback:resp=>{
+      if (resp.error){ status("sign-in failed: "+resp.error,"err"); return; }
+      S.token=resp.access_token;
+      setTimeout(()=>{S.token=null;},(resp.expires_in?resp.expires_in-60:3500)*1000);
+      $("bFolder").disabled=false; $("bFiles").disabled=false;
+      $("bConnect").textContent="Signed in"; status("Signed in","ok");
       if (S.folderId) listFolder(S.folderId);
-      then && then();
+      then&&then();
     },
-    error_callback: err => status("sign-in cancelled" + (err && err.type ? " (" + err.type + ")" : ""), "err")
+    error_callback:err=>status("sign-in cancelled"+(err&&err.type?" ("+err.type+")":""),"err")
   });
   tokenClient.requestAccessToken();
 }
-$("bConnect").addEventListener("click", ()=> connect());
-
+$("bConnect").addEventListener("click",()=>connect());
 function api(path){
-  return fetch("https://www.googleapis.com" + path, { headers:{ Authorization:"Bearer " + S.token } })
-    .then(async res => {
-      const t = await res.text();
-      let j = null; try{ j = JSON.parse(t); }catch(e){}
-      if (!res.ok) throw new Error((j && j.error && j.error.message) || res.status + " " + res.statusText);
-      return j;
-    });
+  return fetch("https://www.googleapis.com"+path,{headers:{Authorization:"Bearer "+S.token}})
+    .then(async res=>{ const t=await res.text(); let j=null; try{j=JSON.parse(t);}catch(e){}
+      if (!res.ok) throw new Error((j&&j.error&&j.error.message)||res.status+" "+res.statusText);
+      return j; });
 }
-
 function openPicker(foldersOnly){
-  if (!S.pickerReady){ status("Picker is still loading", "err"); return; }
-  const view = label => {
-    const v = new google.picker.DocsView(google.picker.ViewId.DOCS)
-      .setIncludeFolders(true).setSelectFolderEnabled(foldersOnly)
-      .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
-    return v;
-  };
-  const mine = view("My Drive").setOwnedByMe(true);
-  const shared = view("Shared with me").setOwnedByMe(false);
-  const drives = view("Shared drives").setEnableDrives(true);
-  const b = new google.picker.PickerBuilder()
+  if (!S.pickerReady){ status("Picker is still loading","err"); return; }
+  const view=label=>new google.picker.DocsView(google.picker.ViewId.DOCS)
+    .setIncludeFolders(true).setSelectFolderEnabled(foldersOnly)
+    .setMode(google.picker.DocsViewMode.LIST).setLabel(label);
+  const b=new google.picker.PickerBuilder()
     .setOAuthToken(S.token).setDeveloperKey(API_KEY).setAppId(APP_ID)
-    .addView(mine).addView(shared).addView(drives)
+    .addView(view("My Drive").setOwnedByMe(true))
+    .addView(view("Shared with me").setOwnedByMe(false))
+    .addView(view("Shared drives").setEnableDrives(true))
     .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
-    .setCallback(data => {
-      if (data.action !== google.picker.Action.PICKED) return;
-      const doc = data.docs[0];
-      if (doc.mimeType === FOLDER_MIME){ S.folderId = doc.id; saveHash(); listFolder(doc.id); }
-      else showFiles(data.docs.map(d => ({ id:d.id, name:d.name, size:d.sizeBytes })));
+    .setCallback(data=>{
+      if (data.action!==google.picker.Action.PICKED) return;
+      const doc=data.docs[0];
+      if (doc.mimeType===FOLDER_MIME){ S.folderId=doc.id; saveHash(); listFolder(doc.id); }
+      else showFiles(data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes})));
     });
   if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
   if (location.origin) b.setOrigin(location.origin);
   b.build().setVisible(true);
 }
-$("bFolder").addEventListener("click", ()=> connect(()=> openPicker(true)));
-$("bFiles").addEventListener("click",  ()=> connect(()=> openPicker(false)));
-
+$("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
+$("bFiles").addEventListener("click",()=>connect(()=>openPicker(false)));
 function listFolder(id){
   status("Listing folder…");
-  const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
-  api("/drive/v3/files?q=" + q + "&pageSize=200&orderBy=name" +
-      "&fields=files(id,name,mimeType,size)&supportsAllDrives=true&includeItemsFromAllDrives=true")
-    .then(r => {
-      const fs = (r.files||[]).filter(f => f.mimeType !== FOLDER_MIME && DATA_EXT.test(f.name));
-      if (!fs.length){ status("no .mat files in that folder", "err"); showFiles([]); return; }
-      showFiles(fs.map(f => ({ id:f.id, name:f.name, size:f.size })));
-      status(fs.length + " file" + (fs.length===1?"":"s") + " available", "ok");
+  const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
+  api("/drive/v3/files?q="+q+"&pageSize=200&orderBy=name&fields=files(id,name,mimeType,size)"+
+      "&supportsAllDrives=true&includeItemsFromAllDrives=true")
+    .then(r=>{
+      const fs=(r.files||[]).filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
+      if (!fs.length){ status("no .mat files in that folder","err"); showFiles([]); return; }
+      showFiles(fs.map(f=>({id:f.id,name:f.name,size:f.size})));
+      status(fs.length+" file"+(fs.length===1?"":"s")+" available","ok");
       $("bShare").classList.remove("hidden");
     })
-    .catch(e => status("cannot list folder: " + e.message, "err"));
+    .catch(e=>status("cannot list folder: "+e.message,"err"));
 }
-
 function showFiles(list){
-  const box = $("files");
-  box.innerHTML = "";
-  $("filesBar").classList.toggle("hidden", !list.length);
+  const box=$("files"); box.innerHTML="";
+  $("filesBar").classList.toggle("hidden",!list.length);
   for (const f of list){
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.innerHTML = f.name + (f.size ? '<span class="sz">' + fmtBytes(+f.size) + "</span>" : "");
-    b.addEventListener("click", ()=>{
-      [...box.children].forEach(c => c.classList.remove("on"));
-      b.classList.add("on");
-      loadDriveFile(f);
-    });
+    const b=document.createElement("button");
+    b.className="chip";
+    b.innerHTML=f.name+(f.size?'<span class="sz">'+fmtBytes(+f.size)+"</span>":"");
+    b.addEventListener("click",()=>{ [...box.children].forEach(c=>c.classList.remove("on")); b.classList.add("on"); loadDriveFile(f); });
     box.appendChild(b);
   }
 }
-
 async function loadDriveFile(f){
-  if (!S.token){ connect(()=> loadDriveFile(f)); return; }
+  if (!S.token){ connect(()=>loadDriveFile(f)); return; }
   try{
-    status("Downloading " + f.name + " …");
-    const res = await fetch("https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media&supportsAllDrives=true",
-      { headers:{ Authorization:"Bearer " + S.token } });
-    if (!res.ok) throw new Error(res.status + " " + res.statusText);
-    const total = +(f.size || res.headers.get("content-length") || 0);
-    const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+    status("Downloading "+f.name+" …");
+    const res=await fetch("https://www.googleapis.com/drive/v3/files/"+f.id+"?alt=media&supportsAllDrives=true",
+      {headers:{Authorization:"Bearer "+S.token}});
+    if (!res.ok) throw new Error(res.status+" "+res.statusText);
+    const total=+(f.size||res.headers.get("content-length")||0);
+    const rd=res.body&&res.body.getReader?res.body.getReader():null;
     let buf;
-    if (reader){
-      const chunks = []; let got = 0;
-      for(;;){
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value); got += value.length;
-        status("Downloading " + f.name + " — " + fmtBytes(got) + (total ? " of " + fmtBytes(total) : ""));
-      }
-      buf = new Uint8Array(got); let o = 0;
-      for (const c of chunks){ buf.set(c, o); o += c.length; }
-      buf = buf.buffer;
-    } else {
-      buf = await res.arrayBuffer();
-    }
-    await openBuffer(buf, f.name);
-  }catch(e){
-    status("download failed: " + e.message, "err");
-  }
+    if (rd){
+      const cs=[]; let got=0;
+      for(;;){ const {done,value}=await rd.read(); if (done) break;
+        cs.push(value); got+=value.length;
+        status("Downloading "+f.name+" — "+fmtBytes(got)+(total?" of "+fmtBytes(total):"")); }
+      const u=new Uint8Array(got); let o=0;
+      for (const c of cs){ u.set(c,o); o+=c.length; }
+      buf=u.buffer;
+    } else buf=await res.arrayBuffer();
+    await openBuffer(buf,f.name);
+  }catch(e){ status("download failed: "+e.message,"err"); }
 }
-
-function saveHash(){ if (S.folderId) history.replaceState(null,"","#folder=" + S.folderId); }
-$("bShare").addEventListener("click", ()=>{
-  const url = location.origin + location.pathname + "#folder=" + S.folderId;
+function saveHash(){ if (S.folderId) history.replaceState(null,"","#folder="+S.folderId); }
+$("bShare").addEventListener("click",()=>{
+  const url=location.origin+location.pathname+"#folder="+S.folderId;
   navigator.clipboard.writeText(url).then(
-    ()=> status("Link copied — send it to a collaborator you have shared the folder with", "ok"),
-    ()=> status(url, "")
-  );
+    ()=>status("Link copied — send it to a collaborator you have shared the folder with","ok"),
+    ()=>status(url,""));
 });
 
-/* ============================================================
-   Boot
-   ============================================================ */
-(function readHash(){
-  const p = new URLSearchParams(location.hash.slice(1));
-  if (p.get("folder")) S.folderId = p.get("folder");
-})();
-
-(function waitPicker(){
-  if (window.gapi){ gapi.load("picker", ()=>{ S.pickerReady = true; }); }
-  else setTimeout(waitPicker, 250);
-})();
-
+/* ---------------- boot ---------------- */
+(function(){ const p=new URLSearchParams(location.hash.slice(1)); if (p.get("folder")) S.folderId=p.get("folder"); })();
+(function waitPicker(){ if (window.gapi) gapi.load("picker",()=>{S.pickerReady=true;}); else setTimeout(waitPicker,250); })();
 try{
-  const eng = await loadH5();
-  S.h5 = eng.h; S.fs = eng.fs;
-  status(S.folderId ? "Ready — sign in to open the shared folder" : "Ready");
-  if (S.folderId) $("bConnect").textContent = "Connect Drive";
+  const eng=await loadH5();
+  S.h5=eng.h; S.fs=eng.fs;
+  status(S.folderId?"Ready — sign in to open the shared folder":"Ready");
 }catch(e){
-  status("could not load the HDF5 engine — check the network and reload", "err");
+  status("could not load the HDF5 engine — check the network and reload","err");
 }
 </script>
 </body>
