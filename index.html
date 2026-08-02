@@ -184,7 +184,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 4 — 2 Aug 2026";
+const BUILD = "build 5 — 2 Aug 2026";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -821,7 +821,8 @@ window.addEventListener("drop",async e=>{const f=e.dataTransfer.files[0];if(f)op
 let tokenClient=null, silent=false, renewTimer=null;
 
 function initTokenClient(){
-  if (tokenClient||!window.google||!google.accounts||!google.accounts.oauth2) return false;
+  if (tokenClient) return true;                       // already built — ready to use
+  if (!window.google||!google.accounts||!google.accounts.oauth2) return false;
   tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID, scope:SCOPE,
     callback:resp=>{
