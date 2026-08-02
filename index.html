@@ -71,6 +71,14 @@
   .file.on .sz{color:#93a7bd}
   .folder{font-family:var(--mono);font-size:10.5px;color:var(--blueprint);
     padding:9px 13px;border-bottom:1px solid var(--rule-faint);word-break:break-all}
+  .dir{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:11.5px;
+    padding:7px 13px;border:0;border-bottom:1px solid var(--rule-faint);background:#f4f7fa;
+    color:var(--blueprint);cursor:pointer;text-transform:none;letter-spacing:0}
+  .dir:hover{background:#e6ecf4;color:var(--ink)}
+  .other{color:var(--muted);cursor:default}
+  .other:hover{background:transparent;color:var(--muted)}
+  .grouphdr{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);padding:9px 13px 4px}
   .none{padding:16px 13px;font-size:12px;color:var(--muted)}
 
   .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin:0}
@@ -92,7 +100,11 @@
     <div class="sec" style="border-bottom:1px solid var(--rule)">
       <h2>Files</h2>
       <div class="btns">
+        <button class="ghost row" id="bUp" disabled>&#8593; Up</button>
         <button class="ghost row" id="bFolder">Folder…</button>
+      </div>
+      <div class="btns">
+        <button class="ghost row" id="bAddFiles">Add files…</button>
         <button class="ghost row" id="bLocal">Local…</button>
       </div>
     </div>
@@ -184,7 +196,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 5 — 2 Aug 2026";
+const BUILD = "build 7 — 2 Aug 2026";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -286,7 +298,7 @@ const S = {
   names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null], flip:[false,false,false],
   idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
   cmap:store.get("cmap")||"whitejet7", invert:false, epoch:0,
-  token:null, pickerReady:false, folderId:null, fileId:null
+  token:null, pickerReady:false, folderId:null, folderName:"", parentId:null, fileId:null
 };
 $("selCmap").value = S.cmap;
 $("buildTag").textContent = BUILD;
@@ -823,8 +835,9 @@ let tokenClient=null, silent=false, renewTimer=null;
 function initTokenClient(){
   if (tokenClient) return true;                       // already built — ready to use
   if (!window.google||!google.accounts||!google.accounts.oauth2) return false;
+  const hint=store.get("hint")||undefined;
   tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID, scope:SCOPE,
+    client_id:CLIENT_ID, scope:SCOPE, hint:hint,
     callback:resp=>{
       if (resp.error){ tokenFailed(resp.error); return; }
       S.token=resp.access_token;
@@ -833,7 +846,8 @@ function initTokenClient(){
       renewTimer=setTimeout(()=>{ silent=true; tokenClient.requestAccessToken({prompt:""}); },ttl);
       $("bConnect").textContent="Signed in";
       $("bConnect").disabled=true;
-      if (S.folderId) listFolder(S.folderId);
+      api("/oauth2/v3/userinfo").then(u=>{ if (u&&u.email) store.set("hint",u.email); }).catch(()=>{});
+      if (S.folderId) openFolder(S.folderId,true);
       else { status("Signed in — choose a folder","ok"); openPicker(true); }
     },
     error_callback:err=>tokenFailed(err&&err.type||"cancelled")
@@ -886,13 +900,12 @@ function openPicker(foldersOnly){
     .setCallback(data=>{
       if (data.action!==google.picker.Action.PICKED) return;
       const doc=data.docs[0];
-      if (doc.mimeType===FOLDER_MIME){
-        S.folderId=doc.id; store.set("folder",doc.id); store.del("file");
-        history.replaceState(null,"","#folder="+doc.id);
-        $("folderName").textContent=doc.name||"folder";
-        $("folderName").classList.remove("hidden");
-        listFolder(doc.id);
-      } else showFiles(data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes})),true);
+      if (doc.mimeType===FOLDER_MIME){ store.del("file"); openFolder(doc.id,true); }
+      else {
+        const picked=data.docs.map(d=>({id:d.id,name:d.name,size:d.sizeBytes,mimeType:d.mimeType}));
+        if (S.folderId) openFolder(S.folderId,false);   // re-list; the picks are granted now
+        else renderList(picked,true);
+      }
     });
   if (!foldersOnly) b.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
   if (location.origin) b.setOrigin(location.origin);
@@ -900,41 +913,86 @@ function openPicker(foldersOnly){
 }
 $("bFolder").addEventListener("click",()=>connect(()=>openPicker(true)));
 
-function listFolder(id){
-  status("Listing folder…");
-  const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
-  api("/drive/v3/files?q="+q+"&pageSize=200&orderBy=name&fields=files(id,name,mimeType,size)"+
-      "&supportsAllDrives=true&includeItemsFromAllDrives=true")
-    .then(r=>{
-      const fs=(r.files||[]).filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
-      $("bShare").classList.remove("hidden");
-      if (!fs.length){ status("no .mat files in that folder","err"); showFiles([]); return; }
-      showFiles(fs.map(f=>({id:f.id,name:f.name,size:f.size})),true);
-    })
-    .catch(e=>{
-      status("cannot open that folder: "+e.message,"err");
-      store.del("folder");
-    });
+/* ---- folder navigation -------------------------------------------------
+   drive.file only exposes what the user has handed the app, so "up" works
+   as far as the parent chain stays accessible and stops politely when it
+   does not.  Everything the API returns is listed, data files first, so a
+   missing file is visible rather than silently filtered away.            */
+async function listAll(id){
+  const out=[]; let page="";
+  do{
+    const q=encodeURIComponent("'"+id+"' in parents and trashed=false");
+    const r=await api("/drive/v3/files?q="+q+"&pageSize=200&orderBy=folder,name"+
+      "&fields=nextPageToken,files(id,name,mimeType,size)"+
+      "&supportsAllDrives=true&includeItemsFromAllDrives=true"+(page?"&pageToken="+page:""));
+    out.push(...(r.files||[]));
+    page=r.nextPageToken||"";
+  } while(page);
+  return out;
 }
-function showFiles(list,autoOpen){
+async function openFolder(id,autoOpen){
+  if (!S.token){ connect(()=>openFolder(id,autoOpen)); return; }
+  status("Opening folder…");
+  try{
+    let meta={name:"folder",parents:null};
+    try{ meta=await api("/drive/v3/files/"+id+"?supportsAllDrives=true&fields=id,name,parents"); }catch(e){}
+    S.folderId=id; S.folderName=meta.name||"folder";
+    S.parentId=(meta.parents&&meta.parents[0])||null;
+    store.set("folder",id);
+    history.replaceState(null,"","#folder="+id);
+    $("folderName").textContent=S.folderName;
+    $("folderName").classList.remove("hidden");
+    $("bUp").disabled=!S.parentId;
+    $("bShare").classList.remove("hidden");
+    renderList(await listAll(id),autoOpen);
+  }catch(e){
+    status("cannot open that folder: "+e.message,"err");
+  }
+}
+function renderList(items,autoOpen){
   const box=$("fileList"); box.innerHTML="";
-  if (!list.length){ box.innerHTML='<div class="none">No .mat files here.</div>'; return; }
+  const dirs =items.filter(f=>f.mimeType===FOLDER_MIME);
+  const data =items.filter(f=>f.mimeType!==FOLDER_MIME&&DATA_EXT.test(f.name));
+  const other=items.filter(f=>f.mimeType!==FOLDER_MIME&&!DATA_EXT.test(f.name));
+  for (const d of dirs){
+    const b=document.createElement("button");
+    b.className="dir"; b.textContent="\u25B8 "+d.name;
+    b.addEventListener("click",()=>openFolder(d.id,false));
+    box.appendChild(b);
+  }
   const want=store.get("file");
   let target=null;
-  for (const f of list){
+  for (const f of data){
     const b=document.createElement("button");
     b.className="file";
     b.innerHTML=f.name+(f.size?'<span class="sz">'+fmtBytes(+f.size)+"</span>":"");
     b.addEventListener("click",()=>{
-      [...box.children].forEach(c=>c.classList.remove("on"));
+      [...box.querySelectorAll(".file")].forEach(c=>c.classList.remove("on"));
       b.classList.add("on"); loadDriveFile(f);
     });
     box.appendChild(b);
     if (f.id===want) target=b;
   }
-  status(list.length+" file"+(list.length===1?"":"s"),"ok");
+  if (other.length){
+    const h=document.createElement("div");
+    h.className="grouphdr"; h.textContent="other files";
+    box.appendChild(h);
+    for (const f of other){
+      const b=document.createElement("button");
+      b.className="file other"; b.disabled=true;
+      b.innerHTML=f.name+(f.size?'<span class="sz">'+fmtBytes(+f.size)+"</span>":"");
+      box.appendChild(b);
+    }
+  }
+  if (!items.length) box.innerHTML='<div class="none">Nothing visible here. Use <b>Add files…</b> to grant individual files.</div>';
+  status(data.length+" data file"+(data.length===1?"":"s")+
+         (dirs.length?", "+dirs.length+" folder"+(dirs.length===1?"":"s"):"")+
+         (other.length?", "+other.length+" other":""),"ok");
   if (autoOpen&&target) target.click();
 }
+$("bUp").addEventListener("click",()=>{ if (S.parentId) openFolder(S.parentId,false); });
+$("bAddFiles").addEventListener("click",()=>connect(()=>openPicker(false)));
+
 async function loadDriveFile(f){
   if (!S.token){ connect(()=>loadDriveFile(f)); return; }
   S.fileId=f.id; store.set("file",f.id);
@@ -976,7 +1034,7 @@ $("bShare").addEventListener("click",()=>{
 })();
 (function waitPicker(){ if (window.gapi) gapi.load("picker",()=>{S.pickerReady=true;}); else setTimeout(waitPicker,250); })();
 (function waitGis(n){
-  if (initTokenClient()){ if (S.folderId) connectSilent(); return; }
+  if (initTokenClient()){ connectSilent(); return; }
   if (n>40) return;
   setTimeout(()=>waitGis(n+1),200);
 })(0);
