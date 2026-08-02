@@ -89,9 +89,9 @@
 
   <div class="bar hidden" id="varBar">
     <label class="f"><span class="tag">Data</span><select id="selData"></select></label>
-    <label class="f"><span class="tag">X</span><select id="selX"></select></label>
-    <label class="f"><span class="tag">Y</span><select id="selY"></select></label>
-    <label class="f"><span class="tag">Z</span><select id="selZ"></select></label>
+    <label class="f"><span class="tag">Dim 1</span><select id="selX"></select></label>
+    <label class="f"><span class="tag">Dim 2</span><select id="selY"></select></label>
+    <label class="f"><span class="tag">Dim 3</span><select id="selZ"></select></label>
     <span class="spacer"></span>
     <span class="tag" id="dimsTag"></span>
   </div>
@@ -99,6 +99,7 @@
   <div class="bar hidden" id="dispBar">
     <label class="f"><span class="tag">Colormap</span>
       <select id="selCmap">
+        <option value="whitejet7">whitejet7</option>
         <option value="parula">parula</option>
         <option value="viridis">viridis</option>
         <option value="inferno">inferno</option>
@@ -177,7 +178,38 @@ const ANCHORS = {
   purple:[[255,255,255],[243,231,247],[226,201,238],[203,166,226],[176,128,211],[146,90,190],[112,58,160],[78,34,122],[46,16,78],[10,4,24]],
   gray:[[0,0,0],[255,255,255]]
 };
+/* Exact 256-entry maps exported from MATLAB — one hex byte per channel.
+   To add another, in MATLAB with `cmap` a 256x3 array in 0..1:
+       m = round(cmap * 255);
+       s = lower(reshape(dec2hex(m', 2).', 1, []));
+       clipboard('copy', s)
+   Paste the result below under a new name and add an <option> to the
+   colormap selector with the same name.  No other change is needed.     */
+const HEXMAPS = {
+  whitejet7:
+    "fffffffefdfffefcfffdfafffdf8fffcf6fffcf4fffbf2fffaf0fff9eefff9ebfff8e9fff7e6fff6e4fff5e1fff5deff"+
+    "f4dbfff3d8fff2d5fff0d1ffefceffeecaffedc6ffecc2ffeabeffe9baffe8b6ffe6b1ffe5acffe3a7ffe1a2ffe09cff"+
+    "de97ffdc91ffda8bffd884ffd67effd477ffd16fffcf68ffcc60ffca58ffc74fffc447ffc13dffbe34ffbb2affb81fff"+
+    "b415ffb109ffad00fea701fba101f79b02f39503ef9004eb8a04e88405e47e06e07806dc7307d96d08d56708d16109cd"+
+    "5b0aca550ac6500bc24a0cbe440cbb3e0db7380eb3330eaf2d0fac2710a82111a41b11a015129d1013990a1395041491"+
+    "00158f001690001891001a91001c92001e93001f94002295002496002697002898002b99002d9b00309c00339d00359f"+
+    "0038a0003ba1003fa30042a50046a60049a8004daa0051ac0055ae005ab0005eb20063b40068b7006db90072bc0078be"+
+    "007ec10084c4008ac70091ca0097cd009fd100a6d400aed800b6dc00bee000c7e400d0e900daed00e4f200eef700f9fc"+
+    "02fffd07fff80cfff311ffee16ffe91bffe420ffdf25ffda2affd52fffd034ffcb39ffc63effc142ffbd47ffb84cffb3"+
+    "51ffae56ffa95bffa460ff9f65ff9a6aff956fff9074ff8b79ff867eff8182ff7d87ff788cff7391ff6e96ff699bff64"+
+    "a0ff5fa5ff5aaaff55afff50b4ff4bb9ff46beff41c2ff3dc7ff38ccff33d1ff2ed6ff29dbff24e0ff1fe5ff1aeaff15"+
+    "efff10f4ff0bf9ff06feff01fffd00fffb00fff800fff500fff200ffef00ffec00ffe800ffe400ffe000ffdc00ffd700"+
+    "ffd200ffcd00ffc800ffc200ffbc00ffb500ffae00ffa700ff9f00ff9700ff8e00ff8500ff7b00ff7100ff6600ff5a00"+
+    "ff4e00ff4000ff3200ff2300ff1400ff0300fc0000f90000f60000f30000f00000ec0000e90000e60000e30000e00000"+
+    "dc0000d90000d60000d30000d00000cc0000c50000bd0000b50000ad0000a500009e00009600008e00008600007e0000"+
+    "7600006e00006600005f00005700004f00004700003f00003700002f0000270000200000180000100000080000000000"
+};
 const LUT={};
+for (const [n,hex] of Object.entries(HEXMAPS)){
+  const l=new Uint8Array(768);
+  for (let i=0;i<768;i++) l[i]=parseInt(hex.substr(i*2,2),16);
+  LUT[n]=l;
+}
 for (const [n,pts] of Object.entries(ANCHORS)){
   const l=new Uint8Array(768);
   for (let i=0;i<256;i++){
@@ -188,7 +220,7 @@ for (const [n,pts] of Object.entries(ANCHORS)){
   LUT[n]=l;
 }
 function activeLUT(){
-  const b=LUT[S.cmap]||LUT.parula;
+  const b=LUT[S.cmap]||LUT.whitejet7;
   if (!S.invert) return b;
   if (!S._inv||S._invName!==S.cmap){
     const o=new Uint8Array(768);
@@ -203,9 +235,9 @@ const S = {
   h5:null, fs:null, tmpPath:null, file:null, fileName:"",
   candidates:[], vectors:[],
   dims:[1,1,1], strides:[1,1,1], values:null,
-  names:["x","y","z"], dataName:"", axes:[null,null,null],
+  names:["dim1","dim2","dim3"], dataName:"", axes:[null,null,null],
   idx:[0,0,0], vmin:0, vmax:1, fullMin:0, fullMax:1,
-  cmap:"parula", invert:false, epoch:0,
+  cmap:"whitejet7", invert:false, epoch:0,
   token:null, pickerReady:false, folderId:null
 };
 
@@ -312,9 +344,9 @@ function guessAxes(){
 }
 function applyAxis(d){
   const sel=$(["selX","selY","selZ"][d]).value;
-  if (!sel){ S.axes[d]=null; S.names[d]=["x","y","z"][d]; return; }
+  if (!sel){ S.axes[d]=null; S.names[d]=["dim1","dim2","dim3"][d]; return; }
   const e=S.vectors.find(v=>v.path===sel);
-  if (!e||e.count!==S.dims[d]){ S.axes[d]=null; S.names[d]=["x","y","z"][d]; return; }
+  if (!e||e.count!==S.dims[d]){ S.axes[d]=null; S.names[d]=["dim1","dim2","dim3"][d]; return; }
   try{ S.axes[d]=readFlat(e); S.names[d]=e.path.split("/").pop(); }catch(err){ S.axes[d]=null; }
 }
 const axVal=(d,i)=>{ const v=S.axes[d]; return (v&&v.length===S.dims[d])?v[i]:i+1; };
@@ -363,29 +395,32 @@ function layout(W,H){
   const ch = Math.max(110, availH-ah);
   const cy = ay + ah + g.labB + g.gapY;
   return {
-    xy:{x:ax,y:ay,w:aw,h:ah}, zy:{x:bx,y:ay,w:bw,h:ah}, xz:{x:ax,y:cy,w:aw,h:ch},
-    cutTopX:{x:ax,y:g.pad,w:aw,h:g.cutH},
-    cutTopZ:{x:bx,y:g.pad,w:bw,h:g.cutH},
-    cutLeftY:{x:g.pad,y:ay,w:g.cutW,h:ah},
-    cutLeftZ:{x:g.pad,y:cy,w:g.cutW,h:ch},
+    tl:{x:ax,y:ay,w:aw,h:ah}, tr:{x:bx,y:ay,w:bw,h:ah}, bl:{x:ax,y:cy,w:aw,h:ch},
+    cutTopL:{x:ax,y:g.pad,w:aw,h:g.cutH},
+    cutTopR:{x:bx,y:g.pad,w:bw,h:g.cutH},
+    cutLeftT:{x:g.pad,y:ay,w:g.cutW,h:ah},
+    cutLeftB:{x:g.pad,y:cy,w:g.cutW,h:ch},
     cbar:{x:bx+bw+g.gap,y:ay,w:g.cbW,h:ah},
     info:{x:bx,y:cy,w:bw,h:ch}
   };
 }
 
-/* panel descriptors: h = horizontal data axis, v = vertical, fix = sliced axis */
+/* Panels, in the MATLAB arrangement.  For explore3D(Vb, Vg, theta, G)
+   the dimensions are 1 = bias, 2 = gate, 3 = theta, and the figure puts
+   dim 1 on the vertical of both top panels, dim 3 on the horizontal of
+   the left column, dim 2 horizontal top-right and vertical bottom-left. */
 const PAN = [
-  {key:"xy", h:0, v:1, fix:2},
-  {key:"zy", h:2, v:1, fix:0},
-  {key:"xz", h:0, v:2, fix:1}
+  {key:"tl", h:2, v:0, fix:1},   // top-left    dim3 – dim1   (theta – bias)
+  {key:"tr", h:1, v:0, fix:2},   // top-right   dim2 – dim1   (gate  – bias)
+  {key:"bl", h:2, v:1, fix:0}    // bottom-left dim3 – dim2   (theta – gate)
 ];
-/* 1-D strips: ax = the axis plotted; along = "h" (value up) or "v" (value sideways);
-   ref = the panel whose geometry it must match                                        */
+/* 1-D strips: ax = axis plotted; dir "h" = value upward, "v" = value sideways;
+   ref = the panel whose pixel mapping it must inherit exactly.               */
 const STRIP = [
-  {key:"cutTopX",  ax:0, dir:"h", ref:"xy"},
-  {key:"cutTopZ",  ax:2, dir:"h", ref:"zy"},
-  {key:"cutLeftY", ax:1, dir:"v", ref:"xy"},
-  {key:"cutLeftZ", ax:2, dir:"v", ref:"xz"}
+  {key:"cutTopL",  ax:2, dir:"h", ref:"tl"},
+  {key:"cutTopR",  ax:1, dir:"h", ref:"tr"},
+  {key:"cutLeftT", ax:0, dir:"v", ref:"tl"},
+  {key:"cutLeftB", ax:1, dir:"v", ref:"bl"}
 ];
 
 const cv = $("cv");
