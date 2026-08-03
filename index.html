@@ -86,6 +86,25 @@
   .node .car{width:13px;flex:0 0 13px;color:var(--muted);font-size:9px}
   .node.sel .car{color:#9fb0c4}
   .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .modal{position:fixed;inset:0;z-index:40;background:rgba(22,32,46,.45);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{background:var(--surface);border:1px solid var(--ink);width:460px;max-width:100%;
+    max-height:88vh;display:flex;flex-direction:column}
+  .card header{padding:12px 16px;border-bottom:1px solid var(--rule);
+    font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+  .card .bodyp{padding:14px 16px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+  .card footer{padding:11px 16px;border-top:1px solid var(--rule);display:flex;gap:8px;
+    justify-content:flex-end;align-items:center}
+  .card footer .msg{margin-right:auto;font-size:11px;color:var(--muted)}
+  .card input[type=text]{width:100%;font-family:var(--mono);font-size:12.5px;padding:7px 9px;
+    border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+  .seg{display:flex;gap:0}
+  .seg button{flex:1;border:1px solid var(--rule);background:var(--paper);color:var(--muted)}
+  .seg button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .browser{border:1px solid var(--rule);height:190px;overflow-y:auto;background:var(--paper)}
+  .browser .dir{background:transparent}
+  .lab{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:4px;display:block}
   #bPanel{position:absolute;left:9px;top:9px;z-index:6;width:31px;height:27px;padding:0;
     display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);
     background:var(--surface);color:var(--muted);cursor:pointer}
@@ -117,6 +136,25 @@
   .dir:hover{background:#e6ecf4;color:var(--ink)}
   .other{color:var(--muted);cursor:default}
   .other:hover{background:transparent;color:var(--muted)}
+  .modal{position:fixed;inset:0;z-index:40;background:rgba(22,32,46,.45);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{background:var(--surface);border:1px solid var(--ink);width:460px;max-width:100%;
+    max-height:88vh;display:flex;flex-direction:column}
+  .card header{padding:12px 16px;border-bottom:1px solid var(--rule);
+    font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+  .card .bodyp{padding:14px 16px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+  .card footer{padding:11px 16px;border-top:1px solid var(--rule);display:flex;gap:8px;
+    justify-content:flex-end;align-items:center}
+  .card footer .msg{margin-right:auto;font-size:11px;color:var(--muted)}
+  .card input[type=text]{width:100%;font-family:var(--mono);font-size:12.5px;padding:7px 9px;
+    border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+  .seg{display:flex;gap:0}
+  .seg button{flex:1;border:1px solid var(--rule);background:var(--paper);color:var(--muted)}
+  .seg button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .browser{border:1px solid var(--rule);height:190px;overflow-y:auto;background:var(--paper)}
+  .browser .dir{background:transparent}
+  .lab{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:4px;display:block}
   #bPanel{position:absolute;left:9px;top:9px;z-index:6;width:31px;height:27px;padding:0;
     display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);
     background:var(--surface);color:var(--muted);cursor:pointer}
@@ -261,6 +299,32 @@
     </div>
   </main>
 
+  <div id="saveModal" class="modal hidden">
+    <div class="card">
+      <header>Save as</header>
+      <div class="bodyp">
+        <div><span class="lab">File name</span>
+          <input type="text" id="svName" spellcheck="false"></div>
+        <div><span class="lab">Where</span>
+          <div class="seg">
+            <button id="svDrive" class="on">Google&nbsp;Drive</button>
+            <button id="svLocal">This computer</button>
+          </div>
+        </div>
+        <div id="svPlace">
+          <span class="lab">Folder</span>
+          <div id="svCrumbs" class="crumbs" style="border:1px solid var(--rule);border-bottom:0"></div>
+          <div class="browser" id="svTree"></div>
+        </div>
+      </div>
+      <footer>
+        <span class="msg" id="svMsg"></span>
+        <button class="ghost" style="width:auto" id="svCancel">Cancel</button>
+        <button style="width:auto" id="svOK">Save</button>
+      </footer>
+    </div>
+  </div>
+
   <div class="hidden">
     <select id="selData"></select><select id="selX"></select>
     <select id="selY"></select><select id="selZ"></select>
@@ -285,7 +349,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.readonly "+
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 15";
+const BUILD = "build 16";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -1250,8 +1314,8 @@ function downloadBlob(blob,name){
   a.href=u; a.download=name; document.body.appendChild(a); a.click();
   a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000);
 }
-async function uploadToDrive(blob,name){
-  const meta={name,parents:[S.folderId]};
+async function uploadToDrive(blob,name,parent){
+  const meta={name,parents:[parent||S.folderId]};
   const form=new FormData();
   form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
   form.append("file",blob);
@@ -1260,28 +1324,98 @@ async function uploadToDrive(blob,name){
   if (!r.ok) throw new Error((await r.text()).slice(0,180));
   return r.json();
 }
-$("bSave").addEventListener("click",async ()=>{
-  if (!S.values){ status("nothing loaded","err"); return; }
+let SAVE={dir:null,mode:"drive"};
+function saveName(){
   const stem=(S.fileName||"data").replace(/\.(mat|h5|hdf5)$/i,"");
-  const name=stem+"_view.mat";
+  return stem+"_view.mat";
+}
+async function saveBrowse(id){
+  SAVE.dir=id;
+  const cb=$("svCrumbs"), tb=$("svTree");
+  cb.innerHTML=""; tb.innerHTML='<div class="none">Reading…</div>';
+  let chain=[];
+  try{ chain=await chainOf(id); }catch(e){}
+  chain.forEach((c,i)=>{
+    if (i){ const sp=document.createElement("span"); sp.className="sep"; sp.textContent="\u203A"; cb.appendChild(sp); }
+    const b=document.createElement("button");
+    b.textContent=c.name;
+    if (i===chain.length-1) b.className="here";
+    b.addEventListener("click",()=>saveBrowse(c.id));
+    cb.appendChild(b);
+  });
+  try{
+    const dirs=(await children(id)).filter(f=>f.mimeType===FOLDER_MIME);
+    tb.innerHTML="";
+    if (!dirs.length){ tb.innerHTML='<div class="none">No subfolders — saving here.</div>'; return; }
+    for (const d of dirs){
+      const b=document.createElement("button");
+      b.className="dir"; b.textContent="\u25B8 "+d.name;
+      b.addEventListener("click",()=>saveBrowse(d.id));
+      tb.appendChild(b);
+    }
+  }catch(e){ tb.innerHTML='<div class="none">Cannot read that folder.</div>'; }
+}
+function setSaveMode(m){
+  SAVE.mode=m;
+  $("svDrive").classList.toggle("on",m==="drive");
+  $("svLocal").classList.toggle("on",m==="local");
+  $("svPlace").style.display = m==="drive" ? "" : "none";
+  $("svMsg").textContent = m==="local"&&!window.showSaveFilePicker
+    ? "your browser will put it in Downloads" : "";
+}
+$("svDrive").addEventListener("click",()=>setSaveMode("drive"));
+$("svLocal").addEventListener("click",()=>setSaveMode("local"));
+$("svCancel").addEventListener("click",()=>$("saveModal").classList.add("hidden"));
+$("saveModal").addEventListener("click",e=>{ if (e.target.id==="saveModal") $("saveModal").classList.add("hidden"); });
+
+$("bSave").addEventListener("click",()=>{
+  if (!S.values){ status("nothing loaded","err"); return; }
+  $("svName").value=saveName();
+  const canDrive=!!(S.token&&S.folderId);
+  $("svDrive").disabled=!canDrive;
+  setSaveMode(canDrive?"drive":"local");
+  $("saveModal").classList.remove("hidden");
+  if (canDrive) saveBrowse(S.folderId);
+  setTimeout(()=>{ const n=$("svName"); n.focus(); n.setSelectionRange(0,n.value.length-4); },30);
+});
+$("svName").addEventListener("keydown",e=>{ if (e.key==="Enter") $("svOK").click(); });
+
+$("svOK").addEventListener("click",async ()=>{
+  let name=$("svName").value.trim()||saveName();
+  if (!/\.mat$/i.test(name)) name+=".mat";
+  const local = SAVE.mode==="local";
+  let handle=null;
+  if (local&&window.showSaveFilePicker){
+    /* ask for the destination first, while the click is still "fresh" —
+       building the arrays can take long enough to lose user activation */
+    try{
+      handle=await showSaveFilePicker({suggestedName:name,
+        types:[{description:"MATLAB data",accept:{"application/octet-stream":[".mat"]}}]});
+    }catch(e){ return; }                       // cancelled
+  }
+  $("saveModal").classList.add("hidden");
   status("Building "+name+" …");
   let blob;
   try{ blob=exportBlob(); }
   catch(e){ status("could not build the file: "+e.message,"err"); return; }
-  if (S.token&&S.folderId){
+  if (local){
     try{
-      await uploadToDrive(blob,name);
-      kidCache.delete(S.folderId);
-      status("Saved "+name+" to this folder ("+fmtBytes(blob.size)+")","ok");
-      renderList(await children(S.folderId,true),false);
-      return;
-    }catch(e){
-      console.warn("Drive upload failed",e);
-      status("no write access to that folder — downloading instead","err");
-    }
+      if (handle){ const w=await handle.createWritable(); await w.write(blob); await w.close(); }
+      else downloadBlob(blob,name);
+      status("Saved "+name+" ("+fmtBytes(blob.size)+")","ok");
+    }catch(e){ status("save failed: "+e.message,"err"); }
+    return;
   }
-  downloadBlob(blob,name);
-  if (!S.token||!S.folderId) status("Saved "+name+" ("+fmtBytes(blob.size)+")","ok");
+  try{
+    await uploadToDrive(blob,name,SAVE.dir||S.folderId);
+    kidCache.delete(SAVE.dir||S.folderId);
+    status("Saved "+name+" ("+fmtBytes(blob.size)+")","ok");
+    if ((SAVE.dir||S.folderId)===S.folderId) renderList(await children(S.folderId,true),false);
+  }catch(e){
+    console.warn(e);
+    status("no write access there — saved to your computer instead","err");
+    downloadBlob(blob,name);
+  }
 });
 
 /* ---------------- local files ---------------- */
