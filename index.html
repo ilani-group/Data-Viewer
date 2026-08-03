@@ -14,7 +14,7 @@
     --leftW: 262px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%;overflow:hidden}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
   body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.45}
 
   #app{display:flex;height:100vh;width:100vw}
@@ -24,7 +24,9 @@
     background-image:linear-gradient(var(--rule-faint) 1px,transparent 1px),
                      linear-gradient(90deg,var(--rule-faint) 1px,transparent 1px);
     background-size:22px 22px}
-  #cv{display:block;position:absolute;inset:0}
+  #cv{display:block;position:absolute;inset:0;
+    touch-action:none;                 /* without this the browser hijacks a drag as a scroll */
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
   .sec{border-bottom:1px solid var(--rule-faint);padding:11px 13px}
   .sec:last-child{border-bottom:0}
@@ -84,6 +86,12 @@
   .node .car{width:13px;flex:0 0 13px;color:var(--muted);font-size:9px}
   .node.sel .car{color:#9fb0c4}
   .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #bPanel{position:absolute;left:9px;top:9px;z-index:6;width:31px;height:27px;padding:0;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);
+    background:var(--surface);color:var(--muted);cursor:pointer}
+  #bPanel:hover{background:var(--surface);border-color:var(--blueprint);color:var(--blueprint)}
+  #bPanel svg{width:18px;height:18px}
+  #app.collapsed #left{display:none}
   #ctl{position:absolute;background:var(--surface);border:1px solid var(--rule);
     padding:11px 13px;overflow:auto;display:flex;flex-direction:column;gap:9px}
   #ctl h2{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
@@ -109,6 +117,12 @@
   .dir:hover{background:#e6ecf4;color:var(--ink)}
   .other{color:var(--muted);cursor:default}
   .other:hover{background:transparent;color:var(--muted)}
+  #bPanel{position:absolute;left:9px;top:9px;z-index:6;width:31px;height:27px;padding:0;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);
+    background:var(--surface);color:var(--muted);cursor:pointer}
+  #bPanel:hover{background:var(--surface);border-color:var(--blueprint);color:var(--blueprint)}
+  #bPanel svg{width:18px;height:18px}
+  #app.collapsed #left{display:none}
   #ctl{position:absolute;background:var(--surface);border:1px solid var(--rule);
     padding:11px 13px;overflow:auto;display:flex;flex-direction:column;gap:9px}
   #ctl h2{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
@@ -167,6 +181,12 @@
 
   <main id="stage">
     <canvas id="cv"></canvas>
+    <button id="bPanel" title="Show or hide the file list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9.2 5v14"/>
+      </svg>
+    </button>
 
     <div id="ctl" class="hidden">
       <div class="grp">
@@ -258,7 +278,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.readonly";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 12";
+const BUILD = "build 13";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -829,7 +849,8 @@ function drawZoomOverlay(){
 
 /* ---------------- dragging the dashed lines ---------------- */
 let HOT=null, DRAG=null;
-const NEAR=7;
+const COARSE = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+const NEAR = COARSE ? 20 : 7;          // a fingertip needs a bigger grab radius
 function hit(x,y){
   for (const p of PAN){
     const r=L[p.key], nH=vn(p.h), nV=vn(p.v);
@@ -867,6 +888,7 @@ function applyDrag(t,x,y){
 const pos=ev=>{ const b=cv.getBoundingClientRect(); return [ev.clientX-b.left,ev.clientY-b.top]; };
 cv.addEventListener("pointermove",ev=>{
   if (!S.values||!L) return;
+  if (DRAG||ZDRAG) ev.preventDefault();
   const [x,y]=pos(ev);
   if (ZDRAG){
     const r=L[ZDRAG.p.key];
@@ -888,8 +910,10 @@ cv.addEventListener("pointermove",ev=>{
   cv.style.cursor=!h?"default":h.cbar?"ns-resize":h.mode==="v"?"ew-resize":h.mode==="h"?"ns-resize":"crosshair";
   if (changed) draw();
 });
+cv.addEventListener("contextmenu",ev=>ev.preventDefault());
 cv.addEventListener("pointerdown",ev=>{
   if (!S.values||!L) return;
+  ev.preventDefault();
   const [x,y]=pos(ev);
   if (ZOOM){
     const p=panelAt(x,y);
@@ -936,6 +960,14 @@ window.addEventListener("keydown",e=>{
   S.idx[m[0]]=Math.max(0,Math.min(S.dims[m[0]]-1,S.idx[m[0]]+m[1]));
   draw();
 });
+$("bPanel").addEventListener("click",()=>{
+  const app=document.getElementById("app");
+  app.classList.toggle("collapsed");
+  store.set("collapsed",app.classList.contains("collapsed")?"1":"");
+  requestAnimationFrame(()=>{ resize(); draw(); });
+});
+if (store.get("collapsed")==="1") document.getElementById("app").classList.add("collapsed");
+
 let rto;
 window.addEventListener("resize",()=>{ clearTimeout(rto); rto=setTimeout(()=>{resize();draw();},70); });
 
