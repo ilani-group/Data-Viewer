@@ -245,7 +245,7 @@
 
       <div class="grp">
         <div class="line">
-          <button class="ghost txt" id="bSave" style="flex:1">Save view as .mat</button>
+          <button class="ghost txt" id="bSave">Save .mat</button>
         </div>
       </div>
 
@@ -285,7 +285,7 @@ const SCOPE     = "https://www.googleapis.com/auth/drive.readonly "+
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DATA_EXT = /\.(mat|h5|hdf5)$/i;
 
-const BUILD = "build 14";
+const BUILD = "build 15";
 const $ = id => document.getElementById(id);
 const status = (m,c) => { const e=$("status"); e.textContent=m; e.className=c||""; };
 
@@ -409,6 +409,130 @@ async function loadH5(){
   }
   throw last||new Error("h5wasm unavailable");
 }
+
+/* Reader for classic Level-5 .mat files (v6 uncompressed, v7 zlib-compressed).
+   Returns entries shaped like the HDF5 scanner's, so the viewer treats both
+   layouts identically.                                                      */
+const MAT_NUM = {1:Int8Array,2:Uint8Array,3:Int16Array,4:Uint16Array,
+  5:Int32Array,6:Uint32Array,7:Float32Array,9:Float64Array,
+  12:BigInt64Array,13:BigUint64Array};
+
+async function inflate(bytes){
+  const ds=new DecompressionStream("deflate");
+  const stream=new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+function tagAt(dv,off,le){
+  let type=dv.getUint32(off,le), size=dv.getUint32(off+4,le), hdr=8;
+  if ((type>>>16)!==0){ size=(type>>>16)&0xFFFF; type=type&0xFFFF; hdr=4; }
+  /* every element is padded to an 8-byte boundary except compressed ones */
+  const pad = (type===15) ? 0 : (hdr===4 ? (4-size%4)%4 : (8-size%8)%8);
+  return {type,size,data:off+hdr,next:off+hdr+size+pad};
+}
+function numeric(dv,t,le){
+  const C=MAT_NUM[t.type];
+  if (!C) return null;
+  const n=t.size/C.BYTES_PER_ELEMENT, out=new Float64Array(n);
+  const b=dv.byteOffset+t.data;
+  const src=new DataView(dv.buffer,b,t.size);
+  for (let i=0;i<n;i++){
+    switch(t.type){
+      case 1: out[i]=src.getInt8(i); break;
+      case 2: out[i]=src.getUint8(i); break;
+      case 3: out[i]=src.getInt16(i*2,le); break;
+      case 4: out[i]=src.getUint16(i*2,le); break;
+      case 5: out[i]=src.getInt32(i*4,le); break;
+      case 6: out[i]=src.getUint32(i*4,le); break;
+      case 7: out[i]=src.getFloat32(i*4,le); break;
+      case 9: out[i]=src.getFloat64(i*8,le); break;
+      default: out[i]=Number(src.getBigInt64(i*8,le));
+    }
+  }
+  return out;
+}
+function ascii(dv,t){
+  let s="";
+  for (let i=0;i<t.size;i++) s+=String.fromCharCode(dv.getUint8(t.data+i));
+  return s;
+}
+
+/* one miMATRIX -> pushes entries into out */
+function parseMatrix(dv,off,end,le,prefix,out,forceName){
+  let t=tagAt(dv,off,le);                       // array flags
+  const flags=dv.getUint32(t.data,le);
+  const klass=flags&0xFF, complex=!!(flags&0x0800);
+  t=tagAt(dv,t.next,le);                        // dimensions
+  const nd=t.size/4, dims=[];
+  for (let i=0;i<nd;i++) dims.push(dv.getInt32(t.data+i*4,le));
+  t=tagAt(dv,t.next,le);                        // name
+  const name=forceName||ascii(dv,t);
+  let p=t.next;
+  const path=prefix?prefix+"/"+name:name;
+
+  if (klass===2){                               // struct
+    let ft=tagAt(dv,p,le);
+    const flen=dv.getInt32(ft.data,le);
+    ft=tagAt(dv,ft.next,le);
+    const nf=ft.size/flen, names=[];
+    for (let i=0;i<nf;i++){
+      let s="";
+      for (let j=0;j<flen;j++){ const c=dv.getUint8(ft.data+i*flen+j); if (c) s+=String.fromCharCode(c); }
+      names.push(s);
+    }
+    let q=ft.next;
+    for (let i=0;i<nf&&q<end;i++){
+      const mt=tagAt(dv,q,le);
+      if (mt.type===14) parseMatrix(dv,mt.data,mt.data+mt.size,le,path,out,names[i]);
+      q=mt.next;
+    }
+    return;
+  }
+  if (klass<6||klass>15) return;                // cell, char, object: not data
+  const dt=tagAt(dv,p,le);
+  const vals=numeric(dv,dt,le);
+  if (!vals) return;
+  if (complex){                                 // magnitude, as the MATLAB viewer did
+    const it=tagAt(dv,dt.next,le);
+    const im=numeric(dv,it,le);
+    if (im) for (let i=0;i<vals.length;i++) vals[i]=Math.hypot(vals[i],im[i]);
+  }
+  const md=dims.slice();
+  out.push({path,dims:md,eff:md.filter(d=>d>1),count:md.reduce((a,b)=>a*b,1),
+            dtype:"double",data:vals});
+}
+
+async function readMatV5(buf){
+  const dv0=new DataView(buf);
+  const le=String.fromCharCode(dv0.getUint8(126),dv0.getUint8(127))==="IM";
+  const out=[];
+  let off=128;
+  while (off+8<=buf.byteLength){
+    const t=tagAt(dv0,off,le);
+    if (t.type===15){
+      const raw=await inflate(new Uint8Array(buf,t.data,t.size));
+      const dv=new DataView(raw.buffer,raw.byteOffset,raw.byteLength);
+      const it=tagAt(dv,0,le);
+      if (it.type===14) parseMatrix(dv,it.data,it.data+it.size,le,"",out);
+    } else if (t.type===14){
+      parseMatrix(dv0,t.data,t.data+t.size,le,"",out);
+    }
+    if (t.next<=off) break;
+    off=t.next;
+  }
+  return out;
+}
+function isHDF5(buf){
+  const u=new Uint8Array(buf);
+  const sig=[0x89,0x48,0x44,0x46,0x0d,0x0a,0x1a,0x0a];
+  for (const base of [0,512,1024,2048]){
+    if (u.length<base+8) break;
+    let ok=true;
+    for (let i=0;i<8;i++) if (u[base+i]!==sig[i]){ ok=false; break; }
+    if (ok) return true;
+  }
+  return false;
+}
+
 const isDataset=o=>o&&typeof o==="object"&&"shape" in o&&"dtype" in o;
 const isGroup=o=>o&&typeof o==="object"&&typeof o.keys==="function"&&!isDataset(o);
 function scan(node,path,out){
@@ -427,6 +551,8 @@ function scan(node,path,out){
   }
 }
 function readFlat(e){
+  if (e.data) return e.data;
+  if (e.vec) return e.vec;
   let v; try{ v=e.node.value; }catch(err){ throw new Error("cannot read "+e.path+" ("+err.message+")"); }
   if (ArrayBuffer.isView(v)) return v;
   if (Array.isArray(v)){
@@ -443,13 +569,18 @@ async function openBuffer(buf,name){
   try{
     if (S.file){ try{S.file.close();}catch(e){} S.file=null; }
     if (S.tmpPath){ try{S.fs.unlink(S.tmpPath);}catch(e){} }
-    const tmp="/work_"+Date.now()+".h5";
-    S.fs.writeFile(tmp,new Uint8Array(buf));
-    S.tmpPath=tmp;
-    S.file=new S.h5.File(tmp,"r");
     S.fileName=name;
-    const all=[]; scan(S.file,"",all);
-    if (!all.length) throw new Error("no datasets found — is this a -v7.3 file?");
+    let all=[];
+    if (isHDF5(buf)){                       // -v7.3, i.e. HDF5
+      const tmp="/work_"+Date.now()+".h5";
+      S.fs.writeFile(tmp,new Uint8Array(buf));
+      S.tmpPath=tmp;
+      S.file=new S.h5.File(tmp,"r");
+      scan(S.file,"",all);
+    } else {                                 // classic Level-5: v6 plain, v7 zlib
+      all=await readMatV5(buf);
+    }
+    if (!all.length) throw new Error("no readable variables in this file");
     S.candidates=all.filter(e=>e.eff.length>=2).sort((a,b)=>b.count-a.count);
     S.vectors=all.filter(e=>e.eff.length===1&&e.count>1).sort((a,b)=>a.path.localeCompare(b.path));
     if (!S.candidates.length) throw new Error("no 2-D or 3-D arrays in this file");
